@@ -569,30 +569,48 @@ function performExport(wasDark) {
 const builderQuestions = [
     {
         id: "discovery",
-        text: "Which data sources do you want to connect to Microsoft Purview?",
+        text: "Which data sources will you connect to Microsoft Purview?",
         options: [
-            { id: "A", label: "Microsoft 365 (Exchange, SharePoint, Teams)" },
-            { id: "B", label: "Azure Data Sources" },
-            { id: "C", label: "On-premises Data" },
-            { id: "D", label: "Multi-cloud (AWS, GCP)" }
+            { id: "m365", label: "Microsoft 365 (Exchange, SharePoint, Teams)" },
+            { id: "azure", label: "Azure Data Sources" },
+            { id: "onprem", label: "On-premises Data" },
+            { id: "multicloud", label: "Multi-cloud (AWS, GCP)" }
         ]
     },
     {
-        id: "sensitivity",
-        text: "Do you want to implement sensitivity labels?",
+        id: "classification",
+        text: "How do you plan to classify your sensitive data?",
         options: [
-            { id: "yes", label: "Yes, we need active enforcement & labeling." },
-            { id: "no", label: "No, keeping it default for now." }
+            { id: "manual", label: "Manual labeling by users" },
+            { id: "auto", label: "Automatic labeling (Requires E5)" },
+            { id: "edm", label: "Exact Data Match with Databases (Requires E5)" }
         ]
     },
     {
         id: "dlp",
-        text: "Which channels should DLP cover?",
+        text: "Which channels should Data Loss Prevention (DLP) cover?",
         options: [
-            { id: "email", label: "Email (Exchange)" },
-            { id: "endpoint", label: "Windows Endpoint Devices" },
-            { id: "teams", label: "Microsoft Teams" },
-            { id: "spo", label: "SharePoint & OneDrive Data" }
+            { id: "email", label: "Email & SharePoint" },
+            { id: "endpoint", label: "Windows/macOS Endpoint Devices (Requires E5)" },
+            { id: "teams", label: "Microsoft Teams Chat & Channels" },
+            { id: "non_ms", label: "Non-Microsoft cloud apps like Box (Requires E5)" }
+        ]
+    },
+    {
+        id: "insider_risk",
+        text: "Do you need to monitor risky user behavior?",
+        options: [
+            { id: "yes_irm", label: "Yes, Insider Risk Management (Requires E5)" },
+            { id: "yes_comm", label: "Yes, Communication Compliance (Requires E5)" },
+            { id: "no", label: "No, standard audit logs are sufficient" }
+        ]
+    },
+    {
+        id: "ediscovery",
+        text: "What are your requirements for legal holds and eDiscovery?",
+        options: [
+            { id: "standard", label: "Standard eDiscovery (Manual)" },
+            { id: "premium", label: "Premium eDiscovery with AI Review (Requires E5)" }
         ]
     }
 ];
@@ -676,61 +694,144 @@ function generateImplementationPlan() {
     document.getElementById('builder-progress').style.width = '100%';
     const container = document.getElementById('builder-content');
     
-    // Inject generated items based on context
-    // This is a dynamic injection into the user's checklist
-    
     let generatedCount = 0;
+    let needsE5 = false;
+    let e5Reasons = [];
+    window.latestGeneratedTasks = [];
+    
+    function addGTask(catId, taskObj) {
+        let cat = appData.find(c => c.id === catId);
+        if (!cat.items.find(i=>i.id === taskObj.id)) {
+            cat.items.push(taskObj);
+            window.latestGeneratedTasks.push({...taskObj, category: cat.title});
+            generatedCount++;
+        }
+    }
     
     // Discovery
     if(builderAnswers['discovery']) {
-        let cat = appData.find(c => c.id === 'discovery');
         let ans = builderAnswers['discovery'];
-        if(ans.includes('A') && !cat.items.find(i=>i.id==='b_d1')) { cat.items.push({ id: "b_d1", title: "Integrate M365 Data (Exchange, SPO, Teams)", status: "Not Started", priority: "High", notes: "Phase 1 - Effort: Low" }); generatedCount++; }
-        if(ans.includes('B') && !cat.items.find(i=>i.id==='b_d2')) { cat.items.push({ id: "b_d2", title: "Map Azure Data Sources using Purview Maps", status: "Not Started", priority: "Medium", notes: "Phase 2 - Effort: Medium" }); generatedCount++; }
-        if(ans.includes('C') && !cat.items.find(i=>i.id==='b_d3')) { cat.items.push({ id: "b_d3", title: "Configure Integration Runtime for On-Premise", status: "Not Started", priority: "High", notes: "Phase 3 - Effort: High" }); generatedCount++; }
-        if(ans.includes('D') && !cat.items.find(i=>i.id==='b_d4')) { cat.items.push({ id: "b_d4", title: "Extend scanning to AWS/GCP buckets", status: "Not Started", priority: "Low", notes: "Phase 3 - Effort: High" }); generatedCount++; }
+        if(ans.includes('m365')) addGTask('discovery', { id: "b_d1", title: "Integrate M365 Data (Exchange, SPO, Teams)", status: "Done", priority: "High", notes: "Phase 1 - Effort: Low" });
+        if(ans.includes('azure')) addGTask('discovery', { id: "b_d2", title: "Map Azure Data Sources using Purview Maps", status: "Done", priority: "Medium", notes: "Phase 2 - Effort: Medium" });
+        if(ans.includes('onprem')) addGTask('discovery', { id: "b_d3", title: "Configure Integration Runtime for On-Premise", status: "Done", priority: "High", notes: "Phase 3 - Effort: High" });
+        if(ans.includes('multicloud')) addGTask('discovery', { id: "b_d4", title: "Extend scanning to AWS/GCP buckets", status: "Done", priority: "Low", notes: "Phase 3 - Effort: High" });
+    }
+    
+    // Classification
+    if(builderAnswers['classification']) {
+        let ans = builderAnswers['classification'];
+        if(ans.includes('manual')) addGTask('classification', { id: "b_c1", title: "Deploy Sensitivity Labels for Manual use", status: "Done", priority: "High", notes: "Phase 1" });
+        if(ans.includes('auto')) { addGTask('classification', { id: "b_c2", title: "Configure Auto-Labeling Rules", status: "Done", priority: "High", notes: "Phase 2 (Requires E5)" }); needsE5=true; e5Reasons.push("Auto-Labeling"); }
+        if(ans.includes('edm')) { addGTask('classification', { id: "b_c3", title: "Implement Exact Data Match (EDM)", status: "Done", priority: "Medium", notes: "Phase 3 (Requires E5)" }); needsE5=true; e5Reasons.push("Exact Data Match"); }
     }
     
     // DLP
     if(builderAnswers['dlp']) {
-        let cat = appData.find(c => c.id === 'dlp');
         let ans = builderAnswers['dlp'];
-        if(ans.includes('email') && !cat.items.find(i=>i.id==='b_dlp1')) { cat.items.push({ id: "b_dlp1", title: "Exchange DLP Policy Deployment", status: "Not Started", priority: "High", notes: "Phase 1 - Effort: Low - Quick Win" }); generatedCount++; }
-        if(ans.includes('endpoint') && !cat.items.find(i=>i.id==='b_dlp2')) { cat.items.push({ id: "b_dlp2", title: "Windows Endpoint Device Onboarding", status: "Not Started", priority: "High", notes: "Phase 2 - Effort: High" }); generatedCount++; }
-        if(ans.includes('teams') && !cat.items.find(i=>i.id==='b_dlp3')) { cat.items.push({ id: "b_dlp3", title: "Teams Chat / Channel Blocking", status: "Not Started", priority: "Medium", notes: "Phase 1 - Effort: Low - Quick Win" }); generatedCount++; }
-        if(ans.includes('spo') && !cat.items.find(i=>i.id==='b_dlp4')) { cat.items.push({ id: "b_dlp4", title: "SPO External Sharing DLP Rule", status: "Not Started", priority: "High", notes: "Phase 1 - Effort: Medium" }); generatedCount++; }
+        if(ans.includes('email')) addGTask('dlp', { id: "b_dlp1", title: "Exchange & SharePoint DLP Policies", status: "Done", priority: "High", notes: "Phase 1" });
+        if(ans.includes('endpoint')) { addGTask('dlp', { id: "b_dlp2", title: "Onboard devices to Endpoint DLP", status: "Done", priority: "High", notes: "Phase 2 (Requires E5)" }); needsE5=true; e5Reasons.push("Endpoint DLP"); }
+        if(ans.includes('teams')) addGTask('dlp', { id: "b_dlp3", title: "Teams Chat / Channel Blocking", status: "Done", priority: "Medium", notes: "Phase 1" });
+        if(ans.includes('non_ms')) { addGTask('dlp', { id: "b_dlp4", title: "DLP for Cloud Apps (MCAS)", status: "Done", priority: "Medium", notes: "Phase 3 (Requires E5)" }); needsE5=true; e5Reasons.push("DLP for Cloud Apps"); }
     }
     
-    // Sensitivity
-    if(builderAnswers['sensitivity']) {
-        let cat = appData.find(c => c.id === 'classification');
-        if(builderAnswers['sensitivity'].includes('yes') && !cat.items.find(i=>i.id==='b_c1')) {
-            cat.items.push({ id: "b_c1", title: "Create Root and Sub-labels hierarchy", status: "Not Started", priority: "High", notes: "Phase 1 - Effort: Medium" });
-            cat.items.push({ id: "b_c2", title: "Enable Auto-labeling for SPO [Dependency: Labels]", status: "Not Started", priority: "Medium", notes: "Phase 2 - Effort: High" });
-            generatedCount += 2;
-        }
+    // Insider Risk
+    if(builderAnswers['insider_risk']) {
+        let ans = builderAnswers['insider_risk'];
+        if(ans.includes('yes_irm')) { addGTask('insider_risk', { id: "b_ir1", title: "Set up Insider Risk Management Policies", status: "Done", priority: "High", notes: "Phase 2 (Requires E5)" }); needsE5=true; e5Reasons.push("Insider Risk Management"); }
+        if(ans.includes('yes_comm')) { addGTask('insider_risk', { id: "b_ir2", title: "Configure Communication Compliance", status: "Done", priority: "Medium", notes: "Phase 2 (Requires E5)" }); needsE5=true; e5Reasons.push("Communication Compliance"); }
+    }
+    
+    // eDiscovery
+    if(builderAnswers['ediscovery']) {
+        let ans = builderAnswers['ediscovery'];
+        if(ans.includes('premium')) { addGTask('ediscovery', { id: "b_ed1", title: "Enable Premium eDiscovery capabilities", status: "Done", priority: "Medium", notes: "Phase 3 (Requires E5)" }); needsE5=true; e5Reasons.push("Premium eDiscovery"); }
     }
 
     saveData();
     renderChecklist();
     
+    const licenseBox = needsE5 
+        ? `<div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-5 mb-6 text-left">
+            <h4 class="font-bold text-indigo-700 dark:text-indigo-400 mb-2 flex items-center gap-2"><i class="ph-fill ph-microsoft-logo"></i> License Recommendation: Microsoft 365 E5</h4>
+            <p class="text-sm text-[color:var(--text-muted)] mb-3">Based on your answers, you require E5 or the E5 Compliance Add-on for the following features:</p>
+            <ul class="list-disc list-inside text-sm font-semibold text-slate-800 dark:text-slate-200">
+                ${e5Reasons.map(r => `<li>${r}</li>`).join('')}
+            </ul>
+           </div>`
+        : `<div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-5 mb-6 text-left">
+            <h4 class="font-bold text-emerald-700 dark:text-emerald-400 mb-2 flex items-center gap-2"><i class="ph-fill ph-check-circle text-xl"></i> License Recommendation: Microsoft 365 E3</h4>
+            <p class="text-sm text-[color:var(--text-muted)]">Your selected requirements align with the foundational compliance features included natively in Microsoft 365 E3.</p>
+           </div>`;
+
+    let tableHtml = "";
+    if (window.latestGeneratedTasks.length > 0) {
+        tableHtml = `
+            <div class="overflow-x-auto mt-4 mb-2 bg-white/50 dark:bg-slate-800/10 rounded-xl border border-slate-200 dark:border-slate-700 max-h-52 overflow-y-auto w-full text-left shadow-sm">
+                <table class="w-full text-sm">
+                    <thead class="bg-indigo-50/80 dark:bg-slate-800 text-slate-800 dark:text-slate-200 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-3 py-2.5 font-bold border-b border-slate-200 dark:border-slate-700">Category</th>
+                            <th class="px-3 py-2.5 font-bold border-b border-slate-200 dark:border-slate-700">Generated Task Name</th>
+                            <th class="px-3 py-2.5 font-bold border-b border-slate-200 dark:border-slate-700">Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                        ${window.latestGeneratedTasks.map(t => `
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                            <td class="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 align-top">${t.category.split(' ')[1] || t.category.split(' ')[0]}</td>
+                            <td class="px-3 py-2 font-medium text-slate-700 dark:text-slate-300 align-top">${t.title}</td>
+                            <td class="px-3 py-2 align-top"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${t.priority==='High'?'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400':'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400'}">${t.priority}</span></td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    }
+
     container.innerHTML = `
-        <div class="text-center py-10 space-y-4 px-4 fade-in">
-            <div class="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 shadow-inner">
-                <i class="ph-fill ph-check-circle text-5xl text-emerald-500"></i>
+        <div class="text-center py-6 space-y-4 px-4 fade-in">
+            <div class="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4 border border-emerald-500/20 shadow-inner">
+                <i class="ph-fill ph-check-circle text-4xl text-emerald-500"></i>
             </div>
-            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-white mb-2 tracking-tight">Plan Successfully Generated!</h3>
-            <p class="text-[color:var(--text-muted)] text-base">We successfully built your JSON payload and directly injected <strong>${generatedCount} new personalized tasks</strong> into your active checklist.</p>
+            <h3 class="text-2xl font-extrabold text-slate-800 dark:text-white mb-2 tracking-tight">Implementation Plan Generated!</h3>
+            <p class="text-[color:var(--text-muted)] text-sm mb-6">We successfully built your plan and directly injected <strong>${generatedCount} personalized tasks</strong> into your checklist.</p>
             
-            <div class="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4 mt-6 text-indigo-600 dark:text-indigo-400 font-medium text-sm inline-block mx-auto text-left">
-                <i class="ph-fill ph-info mr-2"></i> All new items include Phase, Priority, and categorized Efforts.
-            </div>
+            ${licenseBox}
             
-            <div class="mt-10">
-                <button onclick="switchTab('checklist')" class="saas-btn px-8 py-3.5 font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-500 shadow-xl shadow-teal-500/20 w-full sm:w-auto">
+            ${tableHtml}
+            
+            <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+                <button onclick="exportTasksToCSV()" class="secondary-btn px-6 py-3 font-semibold text-sm w-full sm:w-auto flex items-center justify-center gap-2 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:border-emerald-500 transition-all rounded-xl shadow-sm">
+                    <i class="ph-bold ph-microsoft-excel-logo text-lg text-emerald-500"></i> Export to Excel (CSV)
+                </button>
+                <button onclick="switchTab('checklist')" class="saas-btn px-8 py-3 font-bold text-sm bg-gradient-to-r from-indigo-500 to-purple-600 shadow-xl shadow-purple-500/20 w-full sm:w-auto flex items-center justify-center">
                     View Interactive Checklist <i class="ph-bold ph-arrow-right ml-2"></i>
                 </button>
             </div>
         </div>
     `;
+}
+
+function exportTasksToCSV() {
+    let tasks = window.latestGeneratedTasks || [];
+    if(tasks.length === 0) return alert("No new tasks were generated to export.");
+    
+    let csvContent = "\uFEFFCategory,Task Name,Status,Priority,Phase/Effort\n";
+    
+    tasks.forEach(t => {
+        let title = `"${t.title.replace(/"/g, '""')}"`;
+        let notes = `"${t.notes.replace(/"/g, '""')}"`;
+        let cat = `"${t.category.replace(/"/g, '""')}"`;
+        csvContent += `${cat},${title},${t.status},${t.priority},${notes}\n`;
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Purview_Generated_Tasks.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 }
