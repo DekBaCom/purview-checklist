@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purview Readiness | Professional Tool</title>
+    
+    <!-- Scripts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Tailwind Custom Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex min-h-screen antialiased bg-fixed overflow-x-hidden relative">
+    
+    <!-- Background Gradient Shapes -->
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+
+    <!-- Sidebar Overlay for Mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 hidden md:hidden transition-opacity" onclick="toggleMobileSidebar()"></div>
+
+    <!-- Sticky Sidebar -->
+    <aside id="sidebar" class="sidebar w-64 fixed h-full z-40 flex flex-col justify-between py-6 px-4 -translate-x-full md:translate-x-0">
+        <div>
+            <div class="flex items-center gap-3 px-2 mb-10">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex justify-center items-center text-white font-bold text-xl shadow-lg border border-white/20">
+                    <i class="ph-fill ph-microsoft-logo"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight leading-tight">PurviewTrack</h1>
+                    <div class="text-[10px] uppercase font-semibold text-[color:var(--text-muted)] tracking-wider">Deployment Readiness</div>
+                </div>
+            </div>
+            
+            <nav class="space-y-2">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-link active w-full flex items-center gap-3 px-4 py-3 font-medium text-sm">
+                    <i class="ph ph-squares-four text-xl"></i> Dashboard
+                </button>
+                <button onclick="switchTab('checklist')" id="tab-checklist" class="nav-link w-full flex items-center gap-3 px-4 py-3 font-medium text-sm">
+                    <i class="ph ph-list-checks text-xl"></i> Checklist
+                </button>
+                <button onclick="switchTab('report')" id="tab-report" class="nav-link w-full flex items-center gap-3 px-4 py-3 font-medium text-sm">
+                    <i class="ph ph-file-text text-xl"></i> Export Report
+                </button>
+                
+                <div class="pt-4 pb-2">
+                    <div class="text-[10px] uppercase font-bold text-[color:var(--text-muted)] tracking-wider px-4 mb-2">Tools</div>
+                    <button onclick="switchTab('builder')" id="tab-builder" class="nav-link w-full flex items-center gap-3 px-4 py-3 font-semibold text-sm text-purple-600 dark:text-purple-400 bg-purple-500/5 border border-transparent shadow-sm">
+                        <i class="ph-fill ph-magic-wand text-xl"></i> AI Plan Builder
+                    </button>
+                </div>
+            </nav>
+        </div>
+        
+        <div class="space-y-4 px-2">
+            <div class="p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20">
+                <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold text-sm mb-1">
+                    <i class="ph-fill ph-info"></i> Premium Plan
+                </div>
+                <div class="text-xs text-[color:var(--text-muted)] leading-relaxed">
+                    Auto-save enabled. Data stays localized in your browser.
+                </div>
+            </div>
+            
+            <button id="themeToggle" class="w-full flex items-center justify-between px-4 py-3 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-sm font-medium text-[color:var(--text-muted)]">
+                <span class="flex items-center gap-3">
+                    <i class="ph ph-moon text-xl" id="themeIcon"></i>
+                    <span id="themeText">Dark Mode</span>
+                </span>
+                <div class="w-8 h-4 rounded-full bg-slate-200 dark:bg-slate-700 relative transition-colors border border-slate-300 dark:border-slate-600">
+                    <div class="w-3 h-3 rounded-full bg-white absolute top-0.5 left-0.5 dark:translate-x-4 transition-transform shadow-sm"></div>
+                </div>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Wrapper -->
+    <div class="flex-grow md:ml-64 flex flex-col transition-all duration-300 w-full min-h-screen relative z-10">
+        
+        <!-- Mobile Header -->
+        <header class="md:hidden glass-card mx-4 mt-4 px-4 py-3 sticky top-4 z-20 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex justify-center items-center text-white font-bold shadow">
+                    <i class="ph-fill ph-microsoft-logo"></i>
+                </div>
+                <div class="font-bold">PurviewTrack</div>
+            </div>
+            <button onclick="toggleMobileSidebar()" class="p-1 rounded-lg text-[color:var(--text-main)] hover:bg-black/5 dark:hover:bg-white/5">
+                <i class="ph ph-list text-2xl"></i>
+            </button>
+        </header>
+
+        <!-- Dynamic Sections Content -->
+        <main class="flex-grow p-4 md:p-8 lg:p-10 w-full max-w-6xl mx-auto">
+            
+            <!-- Dashboard Section -->
+            <section id="sec-dashboard" class="fade-in space-y-8 block">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight">Overview</h2>
+                        <p class="text-[color:var(--text-muted)] mt-2">Track your entire organizational rollout process globally.</p>
+                    </div>
+                </div>
+                
+                <!-- Main Progress Board -->
+                <div class="glass-card p-6 md:p-8">
+                    <div class="flex justify-between items-end mb-4">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-[color:var(--text-muted)]">Overall Completion Rollout</h3>
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-5xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600" id="overall-progress-text">0%</span>
+                            <span class="text-sm font-semibold text-[color:var(--text-muted)]" id="overall-tasks-text">(0/0)</span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-4 overflow-hidden border border-white/20 dark:border-white/5 shadow-inner">
+                        <div id="overall-progress-bar" class="progress-bar-fill h-full rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Category Cards Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4" id="dashboard-cards">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass-card p-6 lg:p-8 col-span-1 lg:col-span-2">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="font-bold text-lg">Phase Completion</h3>
+                                <p class="text-sm text-[color:var(--text-muted)]">Granular view of checklist phases.</p>
+                            </div>
+                            <div class="p-2 rounded-lg bg-indigo-500/10 text-indigo-500">
+                                <i class="ph-fill ph-chart-bar text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="h-64 relative w-full">
+                            <canvas id="barChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-card p-6 lg:p-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 class="font-bold text-lg">Global States</h3>
+                                <p class="text-sm text-[color:var(--text-muted)]">Distribution of tasks.</p>
+                            </div>
+                            <div class="p-2 rounded-lg bg-purple-500/10 text-purple-500">
+                                <i class="ph-fill ph-chart-pie-slice text-xl"></i>
+                            </div>
+                        </div>
+                        <div class="h-56 relative w-full flex justify-center">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Checklist Section -->
+            <section id="sec-checklist" class="fade-in hidden space-y-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight">Implementation Checklist</h2>
+                        <p class="text-[color:var(--text-muted)] mt-2">Check off tasks to trigger automatic metric updates.</p>
+                    </div>
+                    <button onclick="resetData()" class="secondary-btn px-4 py-2.5 text-sm font-semibold flex items-center gap-2 hover:text-red-500 dark:hover:text-red-400">
+                        <i class="ph ph-arrow-counter-clockwise text-lg"></i> Reset All Data
+                    </button>
+                </div>
+                
+                <div id="checklist-container" class="space-y-6 pb-12">
+                    <!-- Populated by JS -->
+                </div>
+            </section>
+
+            <!-- Builder Section -->
+            <section id="sec-builder" class="fade-in hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-indigo-600">Implementation Builder</h2>
+                        <p class="text-[color:var(--text-muted)] mt-2">Interactive wizard to generate a customized Microsoft Purview rollout plan.</p>
+                    </div>
+                    <button onclick="resetBuilder()" class="secondary-btn px-4 py-2 text-sm font-semibold flex items-center gap-2">
+                        <i class="ph ph-arrow-counter-clockwise text-lg"></i> Restart Wizard
+                    </button>
+                </div>
+
+                <div class="glass-card p-6 md:p-8 space-y-6 flex flex-col min-h-[400px]">
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mb-2">
+                        <div id="builder-progress" class="bg-gradient-to-r from-purple-500 to-indigo-500 h-1.5 rounded-full transition-all duration-500" style="width: 10%"></div>
+                    </div>
+                    
+                    <div id="builder-content" class="flex-grow space-y-6">
+                        <!-- Questions/JSON injected here -->
+                    </div>
+                </div>
+            </section>
+
+
+            <!-- Report Section -->
+            <section id="sec-report" class="fade-in hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight">Readiness Report</h2>
+                        <p class="text-[color:var(--text-muted)] mt-2">Executive summary generated entirely from local inputs.</p>
+                    </div>
+                    <button onclick="exportPDF()" class="saas-btn px-6 py-3 font-bold flex items-center gap-2 text-sm">
+                        <i class="ph-bold ph-download-simple text-lg"></i> Export PDF Report
+                    </button>
+                </div>
+
+                <!-- Print Area -->
+                <div id="report-print-area" class="glass-card p-6 md:p-10 space-y-10 print:shadow-none print:border-none print:p-0">
+                    <!-- Header -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-indigo-500/10 pb-6">
+                        <div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <i class="ph-fill ph-microsoft-logo text-3xl text-indigo-600"></i>
+                                <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Microsoft Purview</h1>
+                            </div>
+                            <h2 class="text-xl md:text-2xl text-[color:var(--text-muted)] font-medium">Deployment Assessment</h2>
+                            <div class="flex items-center gap-2 mt-4 text-sm text-[color:var(--text-muted)] font-semibold">
+                                <i class="ph ph-calendar-blank"></i> <span id="report-date"></span>
+                            </div>
+                        </div>
+                        <div class="bg-indigo-50 dark:bg-indigo-900/20 p-5 rounded-2xl border border-indigo-100 dark:border-indigo-800/30 min-w-[240px]">
+                            <div class="text-xs text-indigo-600 dark:text-indigo-400 font-bold uppercase tracking-widest mb-2 flex items-center gap-1">
+                                <i class="ph-fill ph-shield-check"></i> Maturity Rating
+                            </div>
+                            <div class="text-2xl font-extrabold text-slate-800 dark:text-white" id="report-maturity">
+                                Level 1
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 mt-4 rounded-full overflow-hidden">
+                                <div id="report-maturity-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 w-1/5 shadow-[0_0_10px_rgba(79,70,229,0.5)]"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Executive Summary -->
+                    <section class="relative">
+                        <div class="absolute -left-4 top-0 bottom-0 w-1 bg-indigo-500 rounded-r"></div>
+                        <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800 dark:text-white">
+                            <i class="ph-fill ph-article text-indigo-500"></i> Executive Summary
+                        </h3>
+                        <p class="text-[color:var(--text-muted)] leading-relaxed text-base md:text-lg pl-2" id="report-summary-text">
+                            Loading summary...
+                        </p>
+                    </section>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+                        <!-- Critical Gaps -->
+                        <section class="bg-red-50/50 dark:bg-red-900/10 p-6 rounded-2xl border border-red-100 dark:border-red-900/20">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-red-600 dark:text-red-400">
+                                <i class="ph-fill ph-warning-circle text-xl"></i> High Priority Gaps
+                            </h3>
+                            <ul id="report-gaps" class="space-y-4 text-sm text-[color:var(--text-muted)]">
+                                <!-- JS populated -->
+                            </ul>
+                        </section>
+
+                        <!-- Recommendations -->
+                        <section class="bg-emerald-50/50 dark:bg-emerald-900/10 p-6 rounded-2xl border border-emerald-100 dark:border-emerald-900/20">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                                <i class="ph-fill ph-lightbulb text-xl"></i> Suggested Next Steps
+                            </h3>
+                            <ul id="report-recommendations" class="space-y-4 text-sm text-[color:var(--text-muted)]">
+                                <!-- JS populated -->
+                            </ul>
+                        </section>
+                    </div>
+
+                    <!-- Category Breakdown -->
+                    <section>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-slate-800 dark:text-white">
+                            <i class="ph-fill ph-chart-polar text-purple-500"></i> Category Metrics
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="report-category-breakdown">
+                            <!-- JS populated -->
+                        </div>
+                    </section>
+                    
+                    <div class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800 text-center text-xs text-[color:var(--text-muted)] font-medium">
+                        Securely generated in-browser • Confidential Report
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Script connection -->
+    <script src="script.js"></script>
+</body>
+</html>

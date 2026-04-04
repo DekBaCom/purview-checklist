@@ -1,0 +1,736 @@
+const STORAGE_KEY = 'purview_readiness_data';
+const THEME_KEY = 'purview_theme';
+
+// Default data structure
+const defaultData = [
+    {
+        id: "discovery",
+        title: "Data Discovery",
+        desc: "Identify and understand your data landscape across M365 and external systems.",
+        items: [
+            { id: "d1", title: "Setup Content Explorer & Activity Explorer", status: "Not Started", priority: "High", notes: "" },
+            { id: "d2", title: "Scan SharePoint and OneDrive for sensitive data", status: "Not Started", priority: "High", notes: "" },
+            { id: "d3", title: "Map on-premises data repositories using Purview scanners", status: "Not Started", priority: "Medium", notes: "" },
+            { id: "d4", title: "Review third-party app connections (Shadow IT)", status: "Not Started", priority: "Medium", notes: "" }
+        ]
+    },
+    {
+        id: "classification",
+        title: "Data Classification",
+        desc: "Define what sensitive data means to your organization and tag it.",
+        items: [
+            { id: "c1", title: "Define default Sensitive Information Types (SITs)", status: "Not Started", priority: "High", notes: "" },
+            { id: "c2", title: "Create custom SITs for industry-specific data", status: "Not Started", priority: "Medium", notes: "" },
+            { id: "c3", title: "Create Sensitivity Labels (Public, Internal, Confidential, Strict)", status: "Not Started", priority: "High", notes: "" },
+            { id: "c4", title: "Publish Sensitivity Label policies to user groups", status: "Not Started", priority: "High", notes: "" },
+            { id: "c5", title: "Train Custom Classifiers for complex documents", status: "Not Started", priority: "Low", notes: "" }
+        ]
+    },
+    {
+        id: "dlp",
+        title: "Data Loss Prevention",
+        desc: "Prevent accidental or malicious sharing of sensitive data.",
+        items: [
+            { id: "dlp1", title: "Create baseline Exchange DLP policy", status: "Not Started", priority: "High", notes: "" },
+            { id: "dlp2", title: "Configure Teams chat and channel DLP", status: "Not Started", priority: "Medium", notes: "" },
+            { id: "dlp3", title: "Onboard Windows 10/11 devices to Endpoint DLP", status: "Not Started", priority: "High", notes: "" },
+            { id: "dlp4", title: "Test policies in Audit Only mode", status: "Not Started", priority: "High", notes: "" }
+        ]
+    },
+    {
+        id: "insider_risk",
+        title: "Insider Risk Management",
+        desc: "Identify and mitigate hidden risks within the organization.",
+        items: [
+            { id: "irm1", title: "Enable audit logging in M365", status: "Not Started", priority: "High", notes: "" },
+            { id: "irm2", title: "Configure data theft by departing users policy", status: "Not Started", priority: "Medium", notes: "" },
+            { id: "irm3", title: "Set up communication compliance for harassment/profanity", status: "Not Started", priority: "Low", notes: "" },
+            { id: "irm4", title: "Define access thresholds and anonymized reporting", status: "Not Started", priority: "Medium", notes: "" }
+        ]
+    },
+    {
+        id: "ediscovery",
+        title: "eDiscovery & Lifecycle",
+        desc: "Respond to legal requests and manage data retention.",
+        items: [
+            { id: "edis1", title: "Assign eDiscovery Manager/Administrator roles", status: "Not Started", priority: "High", notes: "" },
+            { id: "edis2", title: "Define default Retention Labels and Policies", status: "Not Started", priority: "High", notes: "" },
+            { id: "edis3", title: "Create legal hold test cases", status: "Not Started", priority: "Medium", notes: "" },
+            { id: "edis4", title: "Review retention rules for Teams recordings", status: "Not Started", priority: "Low", notes: "" }
+        ]
+    }
+];
+
+let appData = [];
+let chartPieInstance = null;
+let chartBarInstance = null;
+
+// Initial Load
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    loadData();
+    renderChecklist();
+    updateDashboard();
+    
+    // Set current date in report
+    const d = new Date();
+    document.getElementById('report-date').textContent = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+});
+
+// --- Theme Management ---
+function initTheme() {
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+    const toggleBtn = document.getElementById('themeToggle');
+    
+    // Initial Setting
+    if (savedTheme === 'dark' || (!localStorage.getItem(THEME_KEY) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('themeIcon').className = 'ph-fill ph-sun text-yellow-400 text-xl';
+        document.getElementById('themeText').textContent = 'Light Mode';
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+        
+        document.getElementById('themeIcon').className = isDark ? 'ph-fill ph-sun text-yellow-400 text-xl' : 'ph ph-moon text-xl';
+        document.getElementById('themeText').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+        
+        // Re-render charts to update colors
+        if(chartPieInstance) updateDashboard();
+    });
+}
+
+// --- Mobile Sidebar Toggle ---
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        setTimeout(() => overlay.classList.add('opacity-100'), 10);
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.remove('opacity-100');
+        setTimeout(() => overlay.classList.add('hidden'), 300);
+    }
+}
+
+// --- Data Management ---
+function loadData() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+        try {
+            const parsed = JSON.parse(saved);
+            if (parsed.length && parsed[0].items) {
+                appData = parsed;
+                return;
+            }
+        } catch (e) {
+            console.error('Error parsing local data', e);
+        }
+    }
+    appData = JSON.parse(JSON.stringify(defaultData)); 
+}
+
+function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    updateDashboard(); // Also sync dash
+}
+
+function resetData() {
+    if (confirm("Are you sure you want to reset all progress? This cannot be undone.")) {
+        appData = JSON.parse(JSON.stringify(defaultData));
+        saveData();
+        renderChecklist();
+        switchTab('dashboard');
+    }
+}
+
+// --- UI Navigation ---
+function switchTab(tabId) {
+    // Hide all sections
+    ['sec-dashboard', 'sec-checklist', 'sec-report', 'sec-builder'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+        document.getElementById(id).classList.remove('block');
+    });
+
+    // Remove active state from tabs
+    document.querySelectorAll('.nav-link').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.remove('bg-indigo-500/10');
+        btn.classList.remove('font-bold');
+        btn.classList.add('font-medium');
+    });
+
+    // Show target section
+    document.getElementById('sec-' + tabId).classList.remove('hidden');
+    document.getElementById('sec-' + tabId).classList.add('block');
+    
+    // Set active tab
+    const activeBtn = document.getElementById('tab-' + tabId);
+    if(activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.classList.remove('font-medium');
+        activeBtn.classList.add('font-bold');
+    }
+    
+    // Close mobile sidebar if open
+    if(window.innerWidth < 768) {
+        const sidebar = document.getElementById('sidebar');
+        if(!sidebar.classList.contains('-translate-x-full')) {
+            toggleMobileSidebar();
+        }
+    }
+
+    // Refresh specific section
+    if (tabId === 'dashboard') updateDashboard();
+    if (tabId === 'report') renderReport();
+    if (tabId === 'builder' && Object.keys(builderAnswers).length === 0) resetBuilder();
+}
+
+// --- Checklist Rendering ---
+function renderChecklist() {
+    const container = document.getElementById('checklist-container');
+    container.innerHTML = '';
+
+    appData.forEach((category, cIndex) => {
+        const catDiv = document.createElement('div');
+        catDiv.className = 'glass-card p-6 md:p-8';
+        
+        let headerHtml = `
+            <div class="mb-6 pb-4 border-b border-slate-200/50 dark:border-slate-700/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-xl font-bold flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-black border border-indigo-500/20 shadow-sm">${cIndex + 1}</div>
+                        ${category.title}
+                    </h3>
+                    <p class="text-sm text-[color:var(--text-muted)] mt-2 md:pl-11">${category.desc}</p>
+                </div>
+            </div>
+            <div class="space-y-3">
+        `;
+        
+        let itemsHtml = category.items.map((item, iIndex) => {
+            const isDone = item.status === "Done";
+            let prioColor = item.priority === 'High' ? 'text-red-500 bg-red-500/10 border-red-500/20' : 
+                            (item.priority === 'Medium' ? 'text-orange-500 bg-orange-500/10 border-orange-500/20' : 
+                            'text-slate-500 bg-slate-500/10 border-slate-500/20');
+
+            return `
+            <div class="checklist-item flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-xl border ${isDone ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50'} shadow-sm">
+                <div class="flex items-start gap-4 flex-grow">
+                    <input type="checkbox" class="glass-checkbox mt-1" 
+                           ${isDone ? 'checked' : ''} 
+                           onchange="handleCheckbox('${category.id}', '${item.id}', this.checked)">
+                    <div class="flex-grow">
+                        <div class="font-semibold text-base ${isDone ? 'line-through text-[color:var(--text-muted)] opacity-70' : 'text-slate-800 dark:text-slate-100'}">${item.title}</div>
+                        <div class="flex gap-2 mt-2">
+                            <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${prioColor}">
+                                ${item.priority}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 lg:w-auto w-full">
+                    <select class="glass-input px-3 py-2 text-sm lg:w-40 font-medium cursor-pointer" 
+                            onchange="updateItem('${category.id}', '${item.id}', 'status', this.value)"
+                            ${isDone ? 'disabled' : ''}>
+                        <option value="Not Started" ${item.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
+                        <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                        <option value="Done" ${item.status === 'Done' ? 'selected' : ''}>Done</option>
+                    </select>
+                    <input type="text" placeholder="Add notes/owners..." class="glass-input px-3 py-2 text-sm flex-grow lg:w-56 placeholder:text-[color:var(--text-muted)]"
+                           value="${item.notes}"
+                           onchange="updateItem('${category.id}', '${item.id}', 'notes', this.value)">
+                </div>
+            </div>
+            `;
+        }).join('');
+
+        catDiv.innerHTML = headerHtml + itemsHtml + `</div>`;
+        container.appendChild(catDiv);
+    });
+}
+
+function updateItem(catId, itemId, field, value) {
+    const cat = appData.find(c => c.id === catId);
+    if (!cat) return;
+    const item = cat.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    item[field] = value;
+    saveData();
+    
+    if (field === 'status') {
+        renderChecklist();
+    }
+}
+
+function handleCheckbox(catId, itemId, isChecked) {
+    const newStatus = isChecked ? "Done" : "In Progress";
+    updateItem(catId, itemId, 'status', newStatus);
+}
+
+// --- Dashboard Logic ---
+function updateDashboard() {
+    let totalItems = 0;
+    let completedItems = 0;
+    
+    let statusCounts = { "Not Started": 0, "In Progress": 0, "Done": 0 };
+    let categoryStats = [];
+
+    appData.forEach(cat => {
+        let catTotal = cat.items.length;
+        let catDone = 0;
+        
+        cat.items.forEach(item => {
+            totalItems++;
+            statusCounts[item.status]++;
+            if (item.status === 'Done') {
+                completedItems++;
+                catDone++;
+            }
+        });
+        
+        categoryStats.push({
+            title: cat.title,
+            shortTitle: cat.title.split(' ')[1] || cat.title.split(' ')[0], // Discovery, Classification, etc.
+            total: catTotal,
+            done: catDone,
+            percent: Math.round((catDone / catTotal) * 100)
+        });
+    });
+
+    const overallPercent = totalItems === 0 ? 0 : Math.round((completedItems / totalItems) * 100);
+    document.getElementById('overall-progress-text').textContent = overallPercent + '%';
+    document.getElementById('overall-tasks-text').textContent = `(${completedItems}/${totalItems})`;
+    document.getElementById('overall-progress-bar').style.width = overallPercent + '%';
+
+    // Update Category Cards
+    const cardsContainer = document.getElementById('dashboard-cards');
+    cardsContainer.innerHTML = '';
+    categoryStats.forEach((stat, idx) => {
+        let isComplete = stat.percent === 100;
+        
+        cardsContainer.innerHTML += `
+            <div class="glass-card p-5 flex flex-col justify-between border-t-4 ${isComplete ? 'border-t-emerald-500' : 'border-t-indigo-500'}">
+                <div class="flex justify-between items-start mb-2">
+                    <div class="text-[11px] font-bold text-[color:var(--text-muted)] uppercase tracking-wider truncate" title="${stat.title}">${stat.title}</div>
+                    ${isComplete ? '<i class="ph-fill ph-check-circle text-emerald-500 text-lg"></i>' : ''}
+                </div>
+                <div class="text-3xl font-black mt-1 ${isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-white'}">${stat.percent}%</div>
+                <div class="text-xs text-[color:var(--text-muted)] mt-1 mb-4 font-medium">${stat.done} of ${stat.total} completed</div>
+                <div class="w-full bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-1.5 mt-auto overflow-hidden">
+                    <div class="${isComplete ? 'bg-emerald-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500'} h-1.5 rounded-full" style="width: ${stat.percent}%"></div>
+                </div>
+            </div>
+        `;
+    });
+
+    drawCharts(statusCounts, categoryStats);
+}
+
+// Chart drawing logic
+function drawCharts(statusCounts, categoryStats) {
+    const isDark = document.documentElement.classList.contains('dark');
+    const textColor = isDark ? '#94a3b8' : '#64748b'; // muted text
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.font.weight = 600;
+
+    // Destroy existing instances
+    if (chartPieInstance) chartPieInstance.destroy();
+    if (chartBarInstance) chartBarInstance.destroy();
+
+    // Pie Chart
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    
+    // Create subtle gradients
+    let g1 = pieCtx.createLinearGradient(0,0,0,300);
+    g1.addColorStop(0, '#cbd5e1'); g1.addColorStop(1, '#94a3b8');
+    if(isDark) { g1.addColorStop(0, '#475569'); g1.addColorStop(1, '#334155'); }
+    
+    let g2 = pieCtx.createLinearGradient(0,0,0,300);
+    g2.addColorStop(0, '#818cf8'); g2.addColorStop(1, '#4f46e5');
+    
+    let g3 = pieCtx.createLinearGradient(0,0,0,300);
+    g3.addColorStop(0, '#34d399'); g3.addColorStop(1, '#059669');
+
+    chartPieInstance = new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Not Started', 'In Progress', 'Done'],
+            datasets: [{
+                data: [statusCounts["Not Started"], statusCounts["In Progress"], statusCounts["Done"]],
+                backgroundColor: [g1, g2, g3],
+                borderWidth: isDark ? 2 : 3,
+                borderColor: isDark ? '#1e293b' : '#ffffff',
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '75%',
+            plugins: {
+                legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+            }
+        }
+    });
+
+    // Bar Chart
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    let barGrad = barCtx.createLinearGradient(0,0,0,400);
+    barGrad.addColorStop(0, '#6366f1'); barGrad.addColorStop(1, '#8b5cf6');
+
+    chartBarInstance = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: categoryStats.map(c => c.shortTitle),
+            datasets: [{
+                label: 'Completion %',
+                data: categoryStats.map(c => c.percent),
+                backgroundColor: barGrad,
+                borderRadius: 6,
+                borderSkipped: false,
+                barThickness: 24
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true, max: 100,
+                    grid: { color: gridColor, drawBorder: false },
+                    ticks: { callback: v => v + '%' }
+                },
+                x: {
+                    grid: { display: false, drawBorder: false }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: isDark ? 'rgba(15,23,42,0.9)' : 'rgba(255,255,255,0.9)',
+                    titleColor: isDark ? '#fff' : '#000',
+                    bodyColor: isDark ? '#cbd5e1' : '#475569',
+                    bodyFont: { weight: 'bold' },
+                    borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        title: (items) => categoryStats[items[0].dataIndex].title,
+                        label: (c) => c.raw + '% Completed'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// --- Report Generation ---
+function renderReport() {
+    let total = 0, done = 0;
+    let gaps = [];
+    let recs = [];
+    let breakdownHtml = '';
+
+    appData.forEach(cat => {
+        let catTotal = cat.items.length;
+        let catDone = 0;
+        
+        cat.items.forEach(item => {
+            total++;
+            if (item.status === 'Done') {
+                catDone++;
+            } else {
+                if (item.priority === 'High') {
+                    gaps.push(`<strong>${cat.title}:</strong> ${item.title}`);
+                } else if (item.status === 'In Progress') {
+                    recs.push(`Finalize in-progress item: "${item.title}"`);
+                } else {
+                    recs.push(`Scope and plan: "${item.title}"`);
+                }
+            }
+        });
+        
+        done += catDone;
+        let pcent = Math.round((catDone / catTotal) * 100);
+        
+        breakdownHtml += `
+            <div class="px-5 py-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/50 flex flex-col justify-center">
+                <div class="flex justify-between items-center mb-2 text-sm font-bold">
+                    <span>${cat.title}</span>
+                    <span class="${pcent===100 ? 'text-emerald-500' : 'text-indigo-500'}">${pcent}%</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                    <div class="${pcent===100 ? 'bg-emerald-500' : 'bg-indigo-500'} h-1.5 rounded-full" style="width: ${pcent}%"></div>
+                </div>
+            </div>
+        `;
+    });
+
+    let overallPcent = Math.round((done / total) * 100);
+    
+    let maturityName = "Level 1";
+    let maturityBar = "20%";
+    let summaryText = "";
+    let barColor = "from-indigo-500 to-purple-600";
+    
+    if (overallPcent >= 90) {
+        maturityName = "Level 5 (Optimized)"; maturityBar = "100%";
+        barColor = "from-emerald-400 to-emerald-600";
+        summaryText = `Outstanding compliance readiness. At ${overallPcent}% completion, the organization's architecture is highly robust. Core configurations across Discovery, Classification, and DLP are fully established.`;
+    } else if (overallPcent >= 70) {
+        maturityName = "Level 4 (Advanced)"; maturityBar = "80%";
+        barColor = "from-blue-400 to-indigo-600";
+        summaryText = `Strong progress shown. Standing at ${overallPcent}% complete, the security posture is Advanced. Most critical workflows are integrated. Ensure remaining high-priority gaps are closed.`;
+    } else if (overallPcent >= 40) {
+        maturityName = "Level 3 (Proactive)"; maturityBar = "60%";
+        summaryText = `The rollout is actively taking shape. At ${overallPcent}% completion, foundational capabilities are transitioning into enforcement phases.`;
+    } else if (overallPcent >= 15) {
+        maturityName = "Level 2 (Developing)"; maturityBar = "40%";
+        barColor = "from-yellow-400 to-orange-500";
+        summaryText = `Early deployment phase. With ${overallPcent}% complete, the focus remains heavily on Data Discovery. Acceleration on Information Protection is advised.`;
+    } else {
+        barColor = "from-red-400 to-rose-600";
+        summaryText = `Deployment is in the nascent stage (${overallPcent}% complete). The immediate priority is defining sensitive information types and initiating data landscape scanning.`;
+    }
+
+    document.getElementById('report-maturity').textContent = maturityName;
+    const matBar = document.getElementById('report-maturity-bar');
+    matBar.style.width = maturityBar;
+    matBar.className = `h-full bg-gradient-to-r w-1/5 shadow-sm transition-all duration-1000 ${barColor}`;
+
+    document.getElementById('report-summary-text').textContent = summaryText;
+
+    const gapsDiv = document.getElementById('report-gaps');
+    if (gaps.length === 0) {
+        gapsDiv.innerHTML = '<li class="flex items-start gap-3"><i class="ph-fill ph-check-circle text-emerald-500 mt-0.5 text-lg"></i> <span class="font-medium text-emerald-700 dark:text-emerald-400">Zero critical blockers detected. Excellent condition.</span></li>';
+    } else {
+        gapsDiv.innerHTML = gaps.slice(0, 5).map(g => `<li class="flex items-start gap-3"><i class="ph-fill ph-warning-circle text-red-500 mt-0.5 text-lg"></i> <span>${g}</span></li>`).join('');
+        if(gaps.length > 5) gapsDiv.innerHTML += `<li class="flex items-start gap-3 pl-7 text-xs italic text-[color:var(--text-muted)]">+ ${gaps.length - 5} additional items...</li>`;
+    }
+
+    const recsDiv = document.getElementById('report-recommendations');
+    if (recs.length === 0) {
+        recsDiv.innerHTML = '<li class="flex items-start gap-3"><i class="ph-fill ph-check-circle text-emerald-500 mt-0.5 text-lg"></i> <span class="font-medium text-emerald-700 dark:text-emerald-400">System is optimized. Proceed to maintenance and periodic reviews.</span></li>';
+    } else {
+        recsDiv.innerHTML = recs.slice(0, 5).map(r => `<li class="flex items-start gap-3"><i class="ph-fill ph-arrow-circle-right text-emerald-500 mt-0.5 text-lg"></i> <span>${r}</span></li>`).join('');
+    }
+
+    document.getElementById('report-category-breakdown').innerHTML = breakdownHtml;
+}
+
+// --- Export to PDF ---
+function exportPDF() {
+    const isDark = document.documentElement.classList.contains('dark');
+    if (isDark) {
+        document.documentElement.classList.remove('dark');
+        setTimeout(() => { performExport(true); }, 150);
+    } else {
+        performExport(false);
+    }
+}
+
+function performExport(wasDark) {
+    const element = document.getElementById('report-print-area');
+    const opt = {
+        margin:       [0.5, 0.5, 0.5, 0.5],
+        filename:     'Purview_Assessment_Report.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    
+    const btn = document.querySelector('#sec-report .saas-btn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-lg"></i> Exporting...';
+    btn.disabled = true;
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        if (wasDark) {
+            document.documentElement.classList.add('dark');
+        }
+    });
+}
+
+// --- Builder Wizard Logic ---
+const builderQuestions = [
+    {
+        id: "discovery",
+        text: "Which data sources do you want to connect to Microsoft Purview?",
+        options: [
+            { id: "A", label: "Microsoft 365 (Exchange, SharePoint, Teams)" },
+            { id: "B", label: "Azure Data Sources" },
+            { id: "C", label: "On-premises Data" },
+            { id: "D", label: "Multi-cloud (AWS, GCP)" }
+        ]
+    },
+    {
+        id: "sensitivity",
+        text: "Do you want to implement sensitivity labels?",
+        options: [
+            { id: "yes", label: "Yes, we need active enforcement & labeling." },
+            { id: "no", label: "No, keeping it default for now." }
+        ]
+    },
+    {
+        id: "dlp",
+        text: "Which channels should DLP cover?",
+        options: [
+            { id: "email", label: "Email (Exchange)" },
+            { id: "endpoint", label: "Windows Endpoint Devices" },
+            { id: "teams", label: "Microsoft Teams" },
+            { id: "spo", label: "SharePoint & OneDrive Data" }
+        ]
+    }
+];
+
+let builderStep = 0;
+let builderAnswers = {};
+let currentSelections = [];
+
+function initBuilder() {
+    const container = document.getElementById('builder-content');
+    if (builderStep < builderQuestions.length) {
+        let q = builderQuestions[builderStep];
+        let prog = ((builderStep) / (builderQuestions.length + 1)) * 100;
+        document.getElementById('builder-progress').style.width = Math.max(prog, 5) + '%';
+        
+        let html = `
+            <div class="mb-2">
+                <span class="text-xs font-extrabold text-purple-500 dark:text-purple-400 uppercase tracking-widest bg-purple-500/10 px-2 py-1 rounded">Step ${builderStep + 1} of ${builderQuestions.length}</span>
+                <h3 class="text-xl md:text-2xl font-bold mt-4 mb-2 text-slate-800 dark:text-white">${q.text}</h3>
+                <p class="text-[color:var(--text-muted)] text-sm mb-6">Select all that apply for your organization's scope.</p>
+            </div>
+            <div class="space-y-3">
+        `;
+        
+        q.options.forEach(opt => {
+            html += `
+                <div class="p-4 border border-slate-200 dark:border-slate-700/50 rounded-xl hover:border-purple-400 dark:hover:border-purple-500 cursor-pointer bg-white/50 dark:bg-slate-800/50 transition-all flex items-center gap-4 group" onclick="selectBuilderOption('${opt.id}')">
+                    <div class="w-6 h-6 rounded border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center builder-opt-box transition-colors" id="box-${opt.id}"></div>
+                    <span class="font-medium text-slate-700 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">${opt.label}</span>
+                </div>
+            `;
+        });
+        
+        html += `</div>
+            <div class="mt-8 flex justify-end gap-3 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                <button class="secondary-btn px-6 py-2.5 text-sm font-semibold" onclick="finishBuilderStep(true)">Skip to Defaults</button>
+                <button class="saas-btn px-6 py-2.5 text-sm font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20" onclick="finishBuilderStep(false)">Next Step <i class="ph-bold ph-arrow-right inline-block ml-1"></i></button>
+            </div>
+        `;
+        container.innerHTML = html;
+        currentSelections = []; // reset for this step
+    } else {
+        generateImplementationPlan();
+    }
+}
+
+function selectBuilderOption(optId) {
+    const box = document.getElementById('box-' + optId);
+    let idx = currentSelections.indexOf(optId);
+    if(idx > -1) {
+        currentSelections.splice(idx, 1);
+        box.innerHTML = '';
+        box.classList.remove('bg-purple-500', 'border-purple-500', 'dark:bg-purple-500', 'dark:border-purple-500');
+    } else {
+        currentSelections.push(optId);
+        box.innerHTML = '<i class="ph-bold ph-check text-white text-sm"></i>';
+        box.classList.add('bg-purple-500', 'border-purple-500', 'dark:bg-purple-500', 'dark:border-purple-500');
+    }
+}
+
+function finishBuilderStep(skip = false) {
+    let q = builderQuestions[builderStep];
+    if(skip) {
+        builderAnswers[q.id] = ["default"];
+    } else {
+        if(currentSelections.length === 0) currentSelections.push("default");
+        builderAnswers[q.id] = [...currentSelections];
+    }
+    builderStep++;
+    initBuilder();
+}
+
+function resetBuilder() {
+    builderStep = 0;
+    builderAnswers = {};
+    currentSelections = [];
+    initBuilder();
+}
+
+function generateImplementationPlan() {
+    document.getElementById('builder-progress').style.width = '100%';
+    const container = document.getElementById('builder-content');
+    
+    // Inject generated items based on context
+    // This is a dynamic injection into the user's checklist
+    
+    let generatedCount = 0;
+    
+    // Discovery
+    if(builderAnswers['discovery']) {
+        let cat = appData.find(c => c.id === 'discovery');
+        let ans = builderAnswers['discovery'];
+        if(ans.includes('A') && !cat.items.find(i=>i.id==='b_d1')) { cat.items.push({ id: "b_d1", title: "Integrate M365 Data (Exchange, SPO, Teams)", status: "Not Started", priority: "High", notes: "Phase 1 - Effort: Low" }); generatedCount++; }
+        if(ans.includes('B') && !cat.items.find(i=>i.id==='b_d2')) { cat.items.push({ id: "b_d2", title: "Map Azure Data Sources using Purview Maps", status: "Not Started", priority: "Medium", notes: "Phase 2 - Effort: Medium" }); generatedCount++; }
+        if(ans.includes('C') && !cat.items.find(i=>i.id==='b_d3')) { cat.items.push({ id: "b_d3", title: "Configure Integration Runtime for On-Premise", status: "Not Started", priority: "High", notes: "Phase 3 - Effort: High" }); generatedCount++; }
+        if(ans.includes('D') && !cat.items.find(i=>i.id==='b_d4')) { cat.items.push({ id: "b_d4", title: "Extend scanning to AWS/GCP buckets", status: "Not Started", priority: "Low", notes: "Phase 3 - Effort: High" }); generatedCount++; }
+    }
+    
+    // DLP
+    if(builderAnswers['dlp']) {
+        let cat = appData.find(c => c.id === 'dlp');
+        let ans = builderAnswers['dlp'];
+        if(ans.includes('email') && !cat.items.find(i=>i.id==='b_dlp1')) { cat.items.push({ id: "b_dlp1", title: "Exchange DLP Policy Deployment", status: "Not Started", priority: "High", notes: "Phase 1 - Effort: Low - Quick Win" }); generatedCount++; }
+        if(ans.includes('endpoint') && !cat.items.find(i=>i.id==='b_dlp2')) { cat.items.push({ id: "b_dlp2", title: "Windows Endpoint Device Onboarding", status: "Not Started", priority: "High", notes: "Phase 2 - Effort: High" }); generatedCount++; }
+        if(ans.includes('teams') && !cat.items.find(i=>i.id==='b_dlp3')) { cat.items.push({ id: "b_dlp3", title: "Teams Chat / Channel Blocking", status: "Not Started", priority: "Medium", notes: "Phase 1 - Effort: Low - Quick Win" }); generatedCount++; }
+        if(ans.includes('spo') && !cat.items.find(i=>i.id==='b_dlp4')) { cat.items.push({ id: "b_dlp4", title: "SPO External Sharing DLP Rule", status: "Not Started", priority: "High", notes: "Phase 1 - Effort: Medium" }); generatedCount++; }
+    }
+    
+    // Sensitivity
+    if(builderAnswers['sensitivity']) {
+        let cat = appData.find(c => c.id === 'classification');
+        if(builderAnswers['sensitivity'].includes('yes') && !cat.items.find(i=>i.id==='b_c1')) {
+            cat.items.push({ id: "b_c1", title: "Create Root and Sub-labels hierarchy", status: "Not Started", priority: "High", notes: "Phase 1 - Effort: Medium" });
+            cat.items.push({ id: "b_c2", title: "Enable Auto-labeling for SPO [Dependency: Labels]", status: "Not Started", priority: "Medium", notes: "Phase 2 - Effort: High" });
+            generatedCount += 2;
+        }
+    }
+
+    saveData();
+    renderChecklist();
+    
+    container.innerHTML = `
+        <div class="text-center py-10 space-y-4 px-4 fade-in">
+            <div class="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-6 border border-emerald-500/20 shadow-inner">
+                <i class="ph-fill ph-check-circle text-5xl text-emerald-500"></i>
+            </div>
+            <h3 class="text-3xl font-extrabold text-slate-800 dark:text-white mb-2 tracking-tight">Plan Successfully Generated!</h3>
+            <p class="text-[color:var(--text-muted)] text-base">We successfully built your JSON payload and directly injected <strong>${generatedCount} new personalized tasks</strong> into your active checklist.</p>
+            
+            <div class="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4 mt-6 text-indigo-600 dark:text-indigo-400 font-medium text-sm inline-block mx-auto text-left">
+                <i class="ph-fill ph-info mr-2"></i> All new items include Phase, Priority, and categorized Efforts.
+            </div>
+            
+            <div class="mt-10">
+                <button onclick="switchTab('checklist')" class="saas-btn px-8 py-3.5 font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-500 shadow-xl shadow-teal-500/20 w-full sm:w-auto">
+                    View Interactive Checklist <i class="ph-bold ph-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
