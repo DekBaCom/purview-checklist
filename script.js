@@ -82,6 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Set current date in report
     const d = new Date();
     document.getElementById('report-date').textContent = d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Check if it's the first time / pristine state
+    const isEnrolled = localStorage.getItem('purview_enrolled');
+    if (!isEnrolled) {
+        switchTab('builder'); // Force Enrollment Questioner on first visit
+    } else {
+        switchTab('dashboard'); // Otherwise default to Dashboard
+    }
 });
 
 // --- Theme Management ---
@@ -151,16 +159,17 @@ function saveData() {
 function resetData() {
     if (confirm("Are you sure you want to reset all progress? This cannot be undone.")) {
         appData = JSON.parse(JSON.stringify(defaultData));
+        localStorage.removeItem('purview_enrolled');
         saveData();
         renderChecklist();
-        switchTab('dashboard');
+        switchTab('builder'); // Take them back to Enrollment
     }
 }
 
 // --- UI Navigation ---
 function switchTab(tabId) {
     // Hide all sections
-    ['sec-dashboard', 'sec-checklist', 'sec-report', 'sec-builder', 'sec-templates'].forEach(id => {
+    ['sec-dashboard', 'sec-checklist', 'sec-report', 'sec-builder', 'sec-templates', 'sec-architecture'].forEach(id => {
         const el = document.getElementById(id);
         if(el) {
             el.classList.add('hidden');
@@ -820,6 +829,7 @@ function generateImplementationPlan() {
         if(ans.includes('premium')) { addGTask('ediscovery', { id: "b_ed1", title: "Enable Premium eDiscovery capabilities", status: "Done", priority: "Medium", license: "E5", notes: "Phase 3 (Requires E5)" }); needsE5=true; e5Reasons.push("Premium eDiscovery"); }
     }
 
+    localStorage.setItem('purview_enrolled', 'true');
     saveData();
     renderChecklist();
     
@@ -1006,5 +1016,47 @@ function exportToProjectManagement() {
 }
 
 function downloadTemplate(filename) {
-    alert("In a real scenario, this would download " + filename);
+    let content = "";
+    let mimeType = "text/plain";
+
+    if (filename === 'financial-dlp.json') {
+        content = JSON.stringify({
+            "name": "Financial Sector Regulatory DLP",
+            "description": "Baseline DLP policy for PCI-DSS and SEC regulations.",
+            "rules": [
+                {
+                    "name": "Detect Credit Cards",
+                    "conditions": { "contains": ["Credit Card Number", "U.S. Bank Account Number"] },
+                    "actions": { "blockAccess": true, "notifyUsers": true }
+                }
+            ]
+        }, null, 4);
+        mimeType = "application/json";
+    } else if (filename === 'sensitivity-labels.json') {
+        content = JSON.stringify({
+            "labels": [
+                { "name": "Public", "tooltip": "Business data meant for public consumption." },
+                { "name": "General", "tooltip": "Internal business data." },
+                { "name": "Confidential", "tooltip": "Sensitive data. Requires protection." },
+                { "name": "Highly Confidential", "tooltip": "Extremely sensitive data. Strict access control." }
+            ]
+        }, null, 4);
+        mimeType = "application/json";
+    } else if (filename === 'priority-users.csv') {
+        content = "\uFEFFEmail,PriorityLevel\nexecutive@domain.com,High\nfinance_lead@domain.com,High\nadmin@domain.com,Critical";
+        mimeType = "text/csv;charset=utf-8;";
+    } else {
+        alert("Template not found.");
+        return;
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 }

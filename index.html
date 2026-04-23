@@ -73,6 +73,10 @@
                     class="nav-link w-full flex items-center gap-3 px-4 py-3 font-medium text-sm">
                     <i class="ph ph-folder-open text-xl"></i> Templates
                 </button>
+                <button onclick="switchTab('architecture')" id="tab-architecture"
+                    class="nav-link w-full flex items-center gap-3 px-4 py-3 font-medium text-sm">
+                    <i class="ph ph-blueprint text-xl"></i> Architecture
+                </button>
                 <button onclick="switchTab('report')" id="tab-report"
                     class="nav-link w-full flex items-center gap-3 px-4 py-3 font-medium text-sm">
                     <i class="ph ph-file-text text-xl"></i> Export Report
@@ -81,10 +85,10 @@
                 <div class="pt-4 pb-2">
                     <div
                         class="text-[10px] uppercase font-bold text-[color:var(--text-muted)] tracking-wider px-4 mb-2">
-                        Tools</div>
+                        Onboarding</div>
                     <button onclick="switchTab('builder')" id="tab-builder"
                         class="nav-link w-full flex items-center gap-3 px-4 py-3 font-semibold text-sm text-purple-600 dark:text-purple-400 bg-purple-500/5 border border-transparent shadow-sm">
-                        <i class="ph-fill ph-magic-wand text-xl"></i> Implementation Questioner
+                        <i class="ph-fill ph-magic-wand text-xl"></i> Enrollment Questioner
                     </button>
                 </div>
             </nav>
@@ -299,7 +303,7 @@
                     <div>
                         <h2
                             class="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-indigo-600">
-                            Implementation Questioner</h2>
+                            Enrollment Questioner</h2>
                         <p class="text-[color:var(--text-muted)] mt-2">Interactive wizard to generate a customized
                             Microsoft Purview rollout plan & License Recommendations.</p>
                     </div>
@@ -380,6 +384,115 @@
                 </div>
             </section>
 
+            <!-- Architecture Section -->
+            <section id="sec-architecture" class="fade-in hidden space-y-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <h2 class="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-blue-600">Reference Architecture</h2>
+                        <p class="text-[color:var(--text-muted)] mt-2">High-level logical design of the Microsoft Purview ecosystem.</p>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 md:p-10 relative overflow-hidden">
+                    <!-- Decorative background -->
+                    <div class="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="flex flex-col lg:flex-row items-stretch justify-center gap-6 lg:gap-10 relative z-10">
+                        
+                        <!-- Data Sources -->
+                        <div class="flex-1 flex flex-col gap-4">
+                            <h3 class="text-center font-bold text-sm uppercase tracking-widest text-[color:var(--text-muted)] mb-2">1. Data Sources</h3>
+                            <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-blue-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
+                                <i class="ph-fill ph-microsoft-logo text-3xl text-blue-500"></i>
+                                <div><h4 class="font-bold text-slate-800 dark:text-slate-100">Microsoft 365</h4><p class="text-xs text-[color:var(--text-muted)]">Exchange, SPO, Teams</p></div>
+                            </div>
+                            <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-cyan-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
+                                <i class="ph-fill ph-cloud text-3xl text-cyan-500"></i>
+                                <div><h4 class="font-bold text-slate-800 dark:text-slate-100">Multi-Cloud</h4><p class="text-xs text-[color:var(--text-muted)]">Azure, AWS, GCP</p></div>
+                            </div>
+                            <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-slate-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
+                                <i class="ph-fill ph-database text-3xl text-slate-500"></i>
+                                <div><h4 class="font-bold text-slate-800 dark:text-slate-100">On-Premises</h4><p class="text-xs text-[color:var(--text-muted)]">SQL, File Shares</p></div>
+                            </div>
+                        </div>
+
+                        <!-- Connector Arrows -->
+                        <div class="hidden lg:flex flex-col justify-center items-center text-indigo-300 dark:text-indigo-800">
+                            <i class="ph-bold ph-arrow-right text-4xl mb-4"></i>
+                            <i class="ph-bold ph-arrow-right text-4xl mb-4"></i>
+                            <i class="ph-bold ph-arrow-right text-4xl"></i>
+                        </div>
+                        <div class="lg:hidden flex justify-center text-indigo-300 dark:text-indigo-800 my-2">
+                            <i class="ph-bold ph-arrow-down text-4xl"></i>
+                        </div>
+
+                        <!-- Purview Core -->
+                        <div class="flex-[1.5] bg-gradient-to-br from-indigo-50/80 to-purple-50/80 dark:from-slate-800/80 dark:to-indigo-900/20 p-6 rounded-2xl border border-indigo-200 dark:border-indigo-500/30 shadow-lg relative">
+                            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-indigo-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-md flex items-center gap-2">
+                                <i class="ph-fill ph-shield-check"></i> Microsoft Purview
+                            </div>
+                            
+                            <h3 class="text-center font-bold text-sm uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-6 mt-2">2. Intelligent Engine</h3>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform">
+                                    <div class="w-10 h-10 mx-auto bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mb-2 shadow-sm">
+                                        <i class="ph-fill ph-magnifying-glass text-xl"></i>
+                                    </div>
+                                    <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Data Governance</h4>
+                                    <p class="text-[10px] text-[color:var(--text-muted)] mt-1">Data Map & Catalog</p>
+                                </div>
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform">
+                                    <div class="w-10 h-10 mx-auto bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2 shadow-sm">
+                                        <i class="ph-fill ph-lock-key text-xl"></i>
+                                    </div>
+                                    <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Information Protection</h4>
+                                    <p class="text-[10px] text-[color:var(--text-muted)] mt-1">SITs, Labels, DLP</p>
+                                </div>
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform">
+                                    <div class="w-10 h-10 mx-auto bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 mb-2 shadow-sm">
+                                        <i class="ph-fill ph-warning-circle text-xl"></i>
+                                    </div>
+                                    <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Insider Risk</h4>
+                                    <p class="text-[10px] text-[color:var(--text-muted)] mt-1">Anomalies & Theft</p>
+                                </div>
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform">
+                                    <div class="w-10 h-10 mx-auto bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2 shadow-sm">
+                                        <i class="ph-fill ph-scales text-xl"></i>
+                                    </div>
+                                    <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Compliance</h4>
+                                    <p class="text-[10px] text-[color:var(--text-muted)] mt-1">eDiscovery & Audit</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Connector Arrows -->
+                        <div class="hidden lg:flex flex-col justify-center items-center text-indigo-300 dark:text-indigo-800">
+                            <i class="ph-bold ph-arrow-right text-4xl"></i>
+                        </div>
+                        <div class="lg:hidden flex justify-center text-indigo-300 dark:text-indigo-800 my-2">
+                            <i class="ph-bold ph-arrow-down text-4xl"></i>
+                        </div>
+
+                        <!-- SecOps -->
+                        <div class="flex-1 flex flex-col justify-center gap-4">
+                            <h3 class="text-center font-bold text-sm uppercase tracking-widest text-[color:var(--text-muted)] mb-2">3. Security Ops</h3>
+                            <div class="glass-card p-5 border-l-4 border-l-indigo-600 text-center hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
+                                <i class="ph-fill ph-radar text-4xl text-indigo-600 mb-2"></i>
+                                <h4 class="font-bold text-lg text-slate-800 dark:text-slate-100">Microsoft Sentinel</h4>
+                                <p class="text-[10px] text-[color:var(--text-muted)] mt-2">SIEM/SOAR Integration for Alerts</p>
+                            </div>
+                            <div class="glass-card p-5 border-l-4 border-l-blue-600 text-center hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
+                                <i class="ph-fill ph-shield-chevron text-4xl text-blue-600 mb-2"></i>
+                                <h4 class="font-bold text-lg text-slate-800 dark:text-slate-100">Defender XDR</h4>
+                                <p class="text-[10px] text-[color:var(--text-muted)] mt-2">Endpoint DLP & App Security</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
 
             <!-- Report Section -->
             <section id="sec-report" class="fade-in hidden space-y-6">
