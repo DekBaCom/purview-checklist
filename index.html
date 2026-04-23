@@ -403,16 +403,16 @@
                         <!-- Data Sources -->
                         <div class="flex-1 flex flex-col gap-4">
                             <h3 class="text-center font-bold text-sm uppercase tracking-widest text-[color:var(--text-muted)] mb-2">1. Data Sources</h3>
-                            <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-blue-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
-                                <i class="ph-fill ph-microsoft-logo text-3xl text-blue-500"></i>
+                            <div onclick="showArchDetail('m365')" class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-blue-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60 cursor-pointer group">
+                                <i class="ph-fill ph-microsoft-logo text-3xl text-blue-500 group-hover:scale-110 transition-transform"></i>
                                 <div><h4 class="font-bold text-slate-800 dark:text-slate-100">Microsoft 365</h4><p class="text-xs text-[color:var(--text-muted)]">Exchange, SPO, Teams</p></div>
                             </div>
-                            <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-cyan-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
-                                <i class="ph-fill ph-cloud text-3xl text-cyan-500"></i>
+                            <div onclick="showArchDetail('cloud')" class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-cyan-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60 cursor-pointer group">
+                                <i class="ph-fill ph-cloud text-3xl text-cyan-500 group-hover:scale-110 transition-transform"></i>
                                 <div><h4 class="font-bold text-slate-800 dark:text-slate-100">Multi-Cloud</h4><p class="text-xs text-[color:var(--text-muted)]">Azure, AWS, GCP</p></div>
                             </div>
-                            <div class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-slate-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
-                                <i class="ph-fill ph-database text-3xl text-slate-500"></i>
+                            <div onclick="showArchDetail('onprem')" class="glass-card p-4 flex items-center gap-4 border-l-4 border-l-slate-500 hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60 cursor-pointer group">
+                                <i class="ph-fill ph-database text-3xl text-slate-500 group-hover:scale-110 transition-transform"></i>
                                 <div><h4 class="font-bold text-slate-800 dark:text-slate-100">On-Premises</h4><p class="text-xs text-[color:var(--text-muted)]">SQL, File Shares</p></div>
                             </div>
                         </div>
@@ -436,29 +436,29 @@
                             <h3 class="text-center font-bold text-sm uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-6 mt-2">2. Intelligent Engine</h3>
                             
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform">
-                                    <div class="w-10 h-10 mx-auto bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mb-2 shadow-sm">
+                                <div onclick="showArchDetail('governance')" class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform cursor-pointer group">
+                                    <div class="w-10 h-10 mx-auto bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mb-2 shadow-sm group-hover:bg-purple-500 group-hover:text-white transition-all">
                                         <i class="ph-fill ph-magnifying-glass text-xl"></i>
                                     </div>
                                     <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Data Governance</h4>
                                     <p class="text-[10px] text-[color:var(--text-muted)] mt-1">Data Map & Catalog</p>
                                 </div>
-                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform">
-                                    <div class="w-10 h-10 mx-auto bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2 shadow-sm">
+                                <div onclick="showArchDetail('protection')" class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform cursor-pointer group">
+                                    <div class="w-10 h-10 mx-auto bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-2 shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-all">
                                         <i class="ph-fill ph-lock-key text-xl"></i>
                                     </div>
                                     <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Information Protection</h4>
                                     <p class="text-[10px] text-[color:var(--text-muted)] mt-1">SITs, Labels, DLP</p>
                                 </div>
-                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform">
-                                    <div class="w-10 h-10 mx-auto bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 mb-2 shadow-sm">
+                                <div onclick="showArchDetail('insider')" class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform cursor-pointer group">
+                                    <div class="w-10 h-10 mx-auto bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 mb-2 shadow-sm group-hover:bg-orange-500 group-hover:text-white transition-all">
                                         <i class="ph-fill ph-warning-circle text-xl"></i>
                                     </div>
                                     <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Insider Risk</h4>
                                     <p class="text-[10px] text-[color:var(--text-muted)] mt-1">Anomalies & Theft</p>
                                 </div>
-                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform">
-                                    <div class="w-10 h-10 mx-auto bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2 shadow-sm">
+                                <div onclick="showArchDetail('compliance')" class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm text-center hover:-translate-y-1 transition-transform cursor-pointer group">
+                                    <div class="w-10 h-10 mx-auto bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mb-2 shadow-sm group-hover:bg-blue-500 group-hover:text-white transition-all">
                                         <i class="ph-fill ph-scales text-xl"></i>
                                     </div>
                                     <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100">Compliance</h4>
@@ -478,13 +478,13 @@
                         <!-- SecOps -->
                         <div class="flex-1 flex flex-col justify-center gap-4">
                             <h3 class="text-center font-bold text-sm uppercase tracking-widest text-[color:var(--text-muted)] mb-2">3. Security Ops</h3>
-                            <div class="glass-card p-5 border-l-4 border-l-indigo-600 text-center hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
-                                <i class="ph-fill ph-radar text-4xl text-indigo-600 mb-2"></i>
+                            <div onclick="showArchDetail('sentinel')" class="glass-card p-5 border-l-4 border-l-indigo-600 text-center hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60 cursor-pointer group">
+                                <i class="ph-fill ph-radar text-4xl text-indigo-600 mb-2 group-hover:scale-110 transition-transform"></i>
                                 <h4 class="font-bold text-lg text-slate-800 dark:text-slate-100">Microsoft Sentinel</h4>
                                 <p class="text-[10px] text-[color:var(--text-muted)] mt-2">SIEM/SOAR Integration for Alerts</p>
                             </div>
-                            <div class="glass-card p-5 border-l-4 border-l-blue-600 text-center hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60">
-                                <i class="ph-fill ph-shield-chevron text-4xl text-blue-600 mb-2"></i>
+                            <div onclick="showArchDetail('defender')" class="glass-card p-5 border-l-4 border-l-blue-600 text-center hover:scale-105 transition-transform bg-white/60 dark:bg-slate-800/60 cursor-pointer group">
+                                <i class="ph-fill ph-shield-chevron text-4xl text-blue-600 mb-2 group-hover:scale-110 transition-transform"></i>
                                 <h4 class="font-bold text-lg text-slate-800 dark:text-slate-100">Defender XDR</h4>
                                 <p class="text-[10px] text-[color:var(--text-muted)] mt-2">Endpoint DLP & App Security</p>
                             </div>
@@ -642,6 +642,43 @@
                 class="p-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 rounded-b-2xl flex justify-end">
                 <button onclick="closeQuickAction()"
                     class="secondary-btn px-4 py-2 text-sm font-semibold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Architecture Detail Modal -->
+    <div id="arch-detail-modal"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="glass-card w-full max-w-2xl mx-4 transform scale-95 transition-transform duration-300 overflow-hidden"
+            id="arch-detail-content">
+            <div id="arch-modal-header" class="p-6 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+                <h3 class="text-xl font-bold flex items-center gap-3" id="arch-modal-title">
+                    <i class="ph-fill ph-blueprint"></i> Architecture Detail
+                </h3>
+                <button onclick="closeArchModal()"
+                    class="p-2 hover:bg-white/10 rounded-lg transition-colors"><i
+                        class="ph-bold ph-x"></i></button>
+            </div>
+            <div class="p-8 space-y-8 max-h-[70vh] overflow-y-auto">
+                <div>
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-indigo-500 mb-3 flex items-center gap-2">
+                        <i class="ph-bold ph-info"></i> รายละเอียด (Technical Details)
+                    </h4>
+                    <div id="arch-modal-desc" class="text-slate-700 dark:text-slate-300 leading-relaxed space-y-2">
+                    </div>
+                </div>
+                
+                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-800/30">
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-indigo-600 dark:text-indigo-400 mb-4 flex items-center gap-2">
+                        <i class="ph-bold ph-sparkle"></i> สิ่งที่จะได้รับ (Value & Outcomes)
+                    </h4>
+                    <ul id="arch-modal-outcomes" class="space-y-3 text-sm text-slate-800 dark:text-slate-200">
+                    </ul>
+                </div>
+            </div>
+            <div class="p-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+                <button onclick="closeArchModal()"
+                    class="saas-btn px-6 py-2 text-sm font-semibold">ปิดหน้าต่าง</button>
             </div>
         </div>
     </div>

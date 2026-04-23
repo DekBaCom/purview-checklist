@@ -1015,6 +1015,124 @@ function exportToProjectManagement() {
     setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
+const archData = {
+    'm365': {
+        title: 'Microsoft 365 Integration',
+        desc: 'เชื่อมต่อโดยตรงกับ Workload หลักขององค์กร เช่น Exchange Online, SharePoint Online, OneDrive for Business และ Microsoft Teams ผ่าน API อัตโนมัติ',
+        outcomes: [
+            'สแกนและค้นหาข้อมูลสำคัญในอีเมลและไฟล์ของพนักงานทั้งหมด',
+            'ควบคุมการแชร์ไฟล์ออกนอกองค์กรผ่าน Teams และ SharePoint',
+            'รักษาความปลอดภัยข้อมูลโดยไม่ต้องติดตั้ง Agent เพิ่มเติม'
+        ]
+    },
+    'cloud': {
+        title: 'Multi-Cloud & SaaS',
+        desc: 'ขยายขอบเขตการคุ้มครองข้อมูลไปยัง Azure SQL, Blob Storage, AWS S3 และแอปพลิเคชัน SaaS อื่นๆ (เช่น Box, Dropbox, Salesforce) ผ่าน Microsoft Defender for Cloud Apps',
+        outcomes: [
+            'มุมมองแบบ Unified View สำหรับข้อมูลที่กระจายตัวอยู่หลาย Cloud',
+            'บังคับใช้นโยบายความปลอดภัยเดียวกันกับไฟล์ที่อยู่บน AWS และ GCP',
+            'ตรวจจับการรั่วไหลของข้อมูลในแอปพลิเคชันบุคคลที่สาม'
+        ]
+    },
+    'onprem': {
+        title: 'On-Premises Data Sources',
+        desc: 'ใช้ Microsoft Purview Information Protection Scanner เพื่อเชื่อมต่อกับ File Shares (SMB) และ SharePoint Server ภายใน Data Center ขององค์กร',
+        outcomes: [
+            'ขยายการจำแนกประเภทข้อมูล (Classification) ไปยัง Legacy Systems',
+            'ระบุจุดเสี่ยงของข้อมูลสำคัญที่เก็บไว้ใน Server ภายในองค์กร',
+            'เตรียมความพร้อมในการย้ายข้อมูลขึ้น Cloud อย่างปลอดภัย'
+        ]
+    },
+    'governance': {
+        title: 'Unified Data Governance',
+        desc: 'หัวใจสำคัญคือ Data Map ที่ทำการรวบรวม Metadata และ Data Catalog ที่ช่วยให้ผู้ใช้งานสามารถค้นหาและทำความเข้าใจความหมายของข้อมูลผ่าน Business Glossary',
+        outcomes: [
+            'สร้างแผนที่ความสัมพันธ์ของข้อมูล (Data Lineage) ทั้งองค์กร',
+            'ลดเวลาที่ใช้ในการค้นหาข้อมูลสำหรับทีม Data Scientist และ Analyst',
+            'ตรวจสอบสุขภาพของข้อมูล (Data Estate Insights) ได้แบบ Real-time'
+        ]
+    },
+    'protection': {
+        title: 'Information Protection & DLP',
+        desc: 'ใช้ AI และ Machine Learning ในการจำแนกประเภทข้อมูล (Sensitivity Labels) และบังคับใช้นโยบายป้องกันการรั่วไหล (DLP) ในทุกช่องทาง',
+        outcomes: [
+            'ติดป้ายระดับความลับให้กับไฟล์โดยอัตโนมัติ (Auto-labeling)',
+            'ป้องกันพนักงานส่งข้อมูลบัตรเครดิตหรือข้อมูลส่วนบุคคลออกนอกบริษัท',
+            'ควบคุมการ Print หรือ Copy ข้อมูลสำคัญลงใน USB'
+        ]
+    },
+    'insider': {
+        title: 'Insider Risk Management',
+        desc: 'วิเคราะห์พฤติกรรมผู้ใช้งานที่มีความเสี่ยง เช่น การดาวน์โหลดไฟล์ปริมาณมากก่อนลาออก หรือการพยายามเข้าถึงข้อมูลที่ไม่มีสิทธิ์',
+        outcomes: [
+            'ตรวจจับภัยคุกคามจากภายใน (Insider Threats) ก่อนเกิดความเสียหาย',
+            'ลดขั้นตอนในการสืบสวนด้วยหลักฐานดิจิทัลที่ครบถ้วน',
+            'ปกป้องทรัพย์สินทางปัญญา (IP) ของบริษัทจากการจารกรรม'
+        ]
+    },
+    'compliance': {
+        title: 'eDiscovery & Audit',
+        desc: 'กระบวนการค้นหาข้อมูลทางกฎหมายที่มีประสิทธิภาพสูง และการจัดการวงจรชีวิตข้อมูล (Lifecycle Management) ผ่านการตั้งค่า Retention Policies',
+        outcomes: [
+            'ค้นหาและ Hold ข้อมูลเพื่อใช้ในการฟ้องร้องได้รวดเร็วกว่าเดิม 10 เท่า',
+            'ทำความสะอาดข้อมูลที่หมดความจำเป็น (Data Minimization)',
+            'รองรับการตรวจสอบตามมาตรฐานสากล (Compliance Audit)'
+        ]
+    },
+    'sentinel': {
+        title: 'Microsoft Sentinel Integration',
+        desc: 'ส่ง Alert จาก Purview ไปยัง SIEM ขององค์กร เพื่อทำการ Correlate กับเหตุการณ์ความปลอดภัยอื่นๆ และทำ Automation (SOAR)',
+        outcomes: [
+            'มุมมองความปลอดภัยแบบ 360 องศา (SIEM + Compliance)',
+            'ตอบสนองต่อเหตุการณ์รั่วไหลได้โดยอัตโนมัติผ่าน Playbooks',
+            'เก็บ Log ระยะยาวสำหรับการตรวจสอบย้อนหลังทางนิติวิทยาศาสตร์'
+        ]
+    },
+    'defender': {
+        title: 'Defender XDR Integration',
+        desc: 'การบังคับใช้นโยบายที่ระดับ Endpoint (Windows/macOS) และการเชื่อมต่อกับ Cloud Apps เพื่อหยุดยั้งการรั่วไหลในระดับ Device',
+        outcomes: [
+            'ป้องกันการหลุดของข้อมูลผ่าน Browser หรือแอปพลิเคชันบนเครื่อง',
+            'แยกแยะไฟล์ที่ติดป้ายความลับ (Label) ได้ที่ระดับ OS',
+            'ประสานงานกับ Defender for Endpoint เพื่อบล็อกเครื่องที่มีความเสี่ยง'
+        ]
+    }
+};
+
+function showArchDetail(key) {
+    const data = archData[key];
+    if (!data) return;
+
+    const modal = document.getElementById('arch-detail-modal');
+    const content = document.getElementById('arch-detail-content');
+    
+    document.getElementById('arch-modal-title').innerHTML = `<i class="ph-fill ph-blueprint"></i> ${data.title}`;
+    document.getElementById('arch-modal-desc').textContent = data.desc;
+    
+    const outcomesList = document.getElementById('arch-modal-outcomes');
+    outcomesList.innerHTML = data.outcomes.map(o => `<li class="flex items-start gap-3"><i class="ph-bold ph-check-circle text-emerald-500 mt-1"></i> ${o}</li>`).join('');
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.add('opacity-100');
+        content.classList.remove('scale-95');
+        content.classList.add('scale-100');
+    }, 10);
+}
+
+function closeArchModal() {
+    const modal = document.getElementById('arch-detail-modal');
+    const content = document.getElementById('arch-detail-content');
+    
+    modal.classList.remove('opacity-100');
+    content.classList.remove('scale-100');
+    content.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
 function downloadTemplate(filename) {
     let content = "";
     let mimeType = "text/plain";

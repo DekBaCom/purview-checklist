@@ -1,43 +1,49 @@
-# PurviewTrack - Deployment Readiness
+# Portal Center for Microsoft Purview Solution
 
-PurviewTrack is a professional, single-page web application designed to help organizations track their Microsoft Purview rollout process globally. It acts as an interactive deployment readiness checklist, complete with progress tracking, visual dashboards, an interactive plan builder, and readiness report generation.
+A professional, enterprise-grade architecture planning and deployment readiness platform for Microsoft Purview. This tool transforms complex compliance requirements into an actionable, persona-driven portal.
 
-## Features
+## 🚀 Key Features
 
-- **Interactive Dashboard:** Get an overview of the rollout process with progress boards and dynamic charts powered by Chart.js.
-- **Implementation Checklist:** Track granular tasks across different phases to automatically update your deployment metrics.
-- **Plan Builder:** Utilize an interactive wizard to formulate a customized Microsoft Purview rollout plan tailored to your organization.
-- **Readiness Report Export:** Generate a categorized executive readiness summary based entirely on local inputs and seamlessly export it to a PDF format.
-- **Privacy-First (No Backend):** All data is saved on your device and localized within your browser via `localStorage` (auto-save enabled). No external server dependencies are required.
-- **Dark Mode Support:** A built-in theme toggle dynamically switches the application between sleek Light and Dark UI modes.
+- **Advanced Assessment (Enrollment Questioner):** An intelligent onboarding wizard that uses industry-specific logic (Financial, Healthcare, etc.) to automatically inject regulatory tasks (PCI-DSS, HIPAA, SEC) into your plan.
+- **The Architect’s Toolkit:** Built-in technical deep-dive library featuring:
+  - **PowerShell Snippets:** Ready-to-use commands for rapid configuration.
+  - **KQL Queries:** Pre-built queries for Microsoft Sentinel and Audit log investigations.
+- **Persona-Based UI Views:** Dynamically adjust the interface for different stakeholders:
+  - **Executive:** High-level risk summaries and progress charts.
+  - **Architect:** Full access to technical tools, license toggles, and detailed notes.
+  - **Operator:** Simplified, task-focused interface for day-to-day execution.
+- **Interactive Reference Architecture:** A visual map of the Purview ecosystem. Click on components to see technical details and the "Value & Outcomes" they provide to the organization.
+- **License Selector (E3 vs E5):** Real-time visualization of license gaps. Switching to E3 gracefully grays out features that require E5, providing a clear path for upselling or budgeting.
+- **Template Repository:** A community-style hub for downloading pre-configured JSON/CSV templates for DLP policies, Sensitivity Labels, and Insider Risk groups.
+- **Project Management Export:** One-click export to a CSV format optimized for importing tasks directly into Microsoft Planner, Jira, or Azure DevOps.
+- **Dashboard & Heatmaps:** Visual health checks across different Purview modules (Governance, Protection, Compliance) using interactive heatmaps and Chart.js.
+- **Privacy-First (No Backend):** All data stays localized in your browser via `localStorage`. No external server dependencies are required for data storage.
 
-## Technology Stack
+## 🛠️ Technology Stack
 
-- **Core:** HTML5, Vanilla JavaScript
-- **Styling:** Tailwind CSS (via CDN) + Custom Vanilla CSS for specific UI/UX components
-- **Libraries:**
-  - [Chart.js](https://www.chartjs.org/) for beautiful, data-driven charts
-  - [html2pdf.js](https://ekoopmans.github.io/html2pdf.js/) for seamless client-side PDF document generation
-  - [Phosphor Icons](https://phosphoricons.com/) for clean and consistent iconography
+- **Frontend:** HTML5, Vanilla JavaScript, Tailwind CSS (Glassmorphism design)
+- **Visualizations:** [Chart.js](https://www.chartjs.org/) for analytics and heatmaps
+- **Reports:** [html2pdf.js](https://ekoopmans.github.io/html2pdf.js/) for executive PDF generation
+- **Icons:** [Phosphor Icons](https://phosphoricons.com/) for a sleek, consistent interface
 
-## Getting Started
+## 🏁 Getting Started
 
-1. **Clone the repository** or download the source code files.
-2. **Open `index.html`** in any modern web browser (Edge, Chrome, Firefox, Safari).
-3. Ensure you have an active internet connection on the first run, as the application requires CDN access for Tailwind CSS, Phosphor Icons, and selected scripts.
+1. **Clone the repository** or download the source files.
+2. **Open `index.html`** in any modern web browser (Edge, Chrome, Chrome).
+3. **Start the Enrollment:** Use the *Enrollment Questioner* to generate your customized implementation plan based on your industry and specific needs.
 
-## Workspace Structure
+## 📂 Project Structure
 
-- `index.html`: The main markup file that builds the structural SPA interface.
-- `style.css`: The stylesheet providing custom tokens, dynamic shape geometry, micro-animations, and custom styling that complements Tailwind.
-- `script.js`: The central logic handler addressing routing, interactive tabs, storage operations, PDF exports, layout configuration, and charting initializations.
+- `index.html`: The core Single Page Application (SPA) structure and UI layout.
+- `script.js`: The "brain" of the portal, handling persona logic, industry rules, toolkit snippets, and data persistence.
+- `style.css`: Custom design tokens, glassmorphism effects, and premium UI styling.
 
-## Important Note
+## 👤 Contributor
 
-This tool leverages local browser caching for persistence across sessions. If you clear your browser's site data, or use Incognito/InPrivate mode without saving, your progress will be internally reset.
-
-## Contributor
-
-- **Contributed by:** Mr. Abdulloh Etaeluengoh
+- **Developed by:** Mr. Abdulloh Etaeluengoh
+- **Role:** Microsoft 365 Solution Architect
 - **Email:** [Abdulloh.eg@gmail.com](mailto:Abdulloh.eg@gmail.com)
-- **LinkedIn:** Abdulloh Etaeluengoh
+- **LinkedIn:** [Abdulloh Etaeluengoh](https://www.linkedin.com/in/abdulloh-etaeluengoh/)
+
+---
+*Powered by Microsoft Purview Deployment Best Practices.*
