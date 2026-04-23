@@ -6,57 +6,62 @@ const defaultData = [
     {
         id: "discovery",
         title: "Data Discovery",
+        module: "Governance",
         desc: "Identify and understand your data landscape across M365 and external systems.",
         items: [
-            { id: "d1", title: "Setup Content Explorer & Activity Explorer", status: "Not Started", priority: "High", notes: "" },
-            { id: "d2", title: "Scan SharePoint and OneDrive for sensitive data", status: "Not Started", priority: "High", notes: "" },
-            { id: "d3", title: "Map on-premises data repositories using Purview scanners", status: "Not Started", priority: "Medium", notes: "" },
-            { id: "d4", title: "Review third-party app connections (Shadow IT)", status: "Not Started", priority: "Medium", notes: "" }
+            { id: "d1", title: "Setup Content Explorer & Activity Explorer", status: "Not Started", priority: "High", license: "E3", powershell: "Connect-IPPSSession\nGet-DataClassificationActivity", kql: "AuditLogs | where Operation == 'Viewed Content Explorer'", notes: "" },
+            { id: "d2", title: "Scan SharePoint and OneDrive for sensitive data", status: "Not Started", priority: "High", license: "E3", powershell: "Start-DlpComplianceRule -Identity 'Scan-SPO'", kql: "OfficeActivity | where RecordType == 'SharePointFileOperation'", notes: "" },
+            { id: "d3", title: "Map on-premises data repositories using Purview scanners", status: "Not Started", priority: "Medium", license: "E5", powershell: "Set-AIPScannerConfiguration -OnPremises $true", kql: "PurviewDataMapLogs | where EventName == 'ScanCompleted'", notes: "" },
+            { id: "d4", title: "Review third-party app connections (Shadow IT)", status: "Not Started", priority: "Medium", license: "E5", powershell: "Get-MCASAppDiscovery", kql: "CloudAppEvents | where ActionType == 'AppConnected'", notes: "" }
         ]
     },
     {
         id: "classification",
         title: "Data Classification",
+        module: "Protection",
         desc: "Define what sensitive data means to your organization and tag it.",
         items: [
-            { id: "c1", title: "Define default Sensitive Information Types (SITs)", status: "Not Started", priority: "High", notes: "" },
-            { id: "c2", title: "Create custom SITs for industry-specific data", status: "Not Started", priority: "Medium", notes: "" },
-            { id: "c3", title: "Create Sensitivity Labels (Public, Internal, Confidential, Strict)", status: "Not Started", priority: "High", notes: "" },
-            { id: "c4", title: "Publish Sensitivity Label policies to user groups", status: "Not Started", priority: "High", notes: "" },
-            { id: "c5", title: "Train Custom Classifiers for complex documents", status: "Not Started", priority: "Low", notes: "" }
+            { id: "c1", title: "Define default Sensitive Information Types (SITs)", status: "Not Started", priority: "High", license: "E3", powershell: "Get-DlpSensitiveInformationType", kql: "AuditLogs | where Operation contains 'SensitiveInformationType'", notes: "" },
+            { id: "c2", title: "Create custom SITs for industry-specific data", status: "Not Started", priority: "Medium", license: "E3", powershell: "New-DlpSensitiveInformationType -Name 'CustomSIT'", kql: "AuditLogs | where Operation == 'New-DlpSensitiveInformationType'", notes: "" },
+            { id: "c3", title: "Create Sensitivity Labels (Public, Internal, Confidential, Strict)", status: "Not Started", priority: "High", license: "E3", powershell: "New-Label -Name 'Confidential'", kql: "AuditLogs | where Operation == 'New-Label'", notes: "" },
+            { id: "c4", title: "Publish Sensitivity Label policies to user groups", status: "Not Started", priority: "High", license: "E3", powershell: "New-LabelPolicy -Name 'Global Policy'", kql: "AuditLogs | where Operation == 'New-LabelPolicy'", notes: "" },
+            { id: "c5", title: "Train Custom Classifiers for complex documents", status: "Not Started", priority: "Low", license: "E5", powershell: "New-DataClassificationTrainer", kql: "AuditLogs | where Operation == 'Train-Classifier'", notes: "" }
         ]
     },
     {
         id: "dlp",
         title: "Data Loss Prevention",
+        module: "Protection",
         desc: "Prevent accidental or malicious sharing of sensitive data.",
         items: [
-            { id: "dlp1", title: "Create baseline Exchange DLP policy", status: "Not Started", priority: "High", notes: "" },
-            { id: "dlp2", title: "Configure Teams chat and channel DLP", status: "Not Started", priority: "Medium", notes: "" },
-            { id: "dlp3", title: "Onboard Windows 10/11 devices to Endpoint DLP", status: "Not Started", priority: "High", notes: "" },
-            { id: "dlp4", title: "Test policies in Audit Only mode", status: "Not Started", priority: "High", notes: "" }
+            { id: "dlp1", title: "Create baseline Exchange DLP policy", status: "Not Started", priority: "High", license: "E3", powershell: "New-DlpCompliancePolicy -Name 'Exchange DLP'", kql: "OfficeActivity | where Operation == 'DLPPolicyMatch'", notes: "" },
+            { id: "dlp2", title: "Configure Teams chat and channel DLP", status: "Not Started", priority: "Medium", license: "E3", powershell: "New-DlpComplianceRule -Policy 'Teams DLP'", kql: "OfficeActivity | where Workload == 'MicrosoftTeams' and Operation == 'DLPPolicyMatch'", notes: "" },
+            { id: "dlp3", title: "Onboard Windows 10/11 devices to Endpoint DLP", status: "Not Started", priority: "High", license: "E5", powershell: "Set-MdatpEnforcement -EnableEndpointDlp $true", kql: "DeviceEvents | where ActionType == 'DlpRuleMatch'", notes: "" },
+            { id: "dlp4", title: "Test policies in Audit Only mode", status: "Not Started", priority: "High", license: "E3", powershell: "Set-DlpCompliancePolicy -Mode Test", kql: "AuditLogs | where Operation == 'Set-DlpCompliancePolicy'", notes: "" }
         ]
     },
     {
         id: "insider_risk",
         title: "Insider Risk Management",
+        module: "Compliance",
         desc: "Identify and mitigate hidden risks within the organization.",
         items: [
-            { id: "irm1", title: "Enable audit logging in M365", status: "Not Started", priority: "High", notes: "" },
-            { id: "irm2", title: "Configure data theft by departing users policy", status: "Not Started", priority: "Medium", notes: "" },
-            { id: "irm3", title: "Set up communication compliance for harassment/profanity", status: "Not Started", priority: "Low", notes: "" },
-            { id: "irm4", title: "Define access thresholds and anonymized reporting", status: "Not Started", priority: "Medium", notes: "" }
+            { id: "irm1", title: "Enable audit logging in M365", status: "Not Started", priority: "High", license: "E3", powershell: "Set-AdminAuditLogConfig -UnifiedAuditLogIngestionEnabled $true", kql: "AuditLogs | take 10", notes: "" },
+            { id: "irm2", title: "Configure data theft by departing users policy", status: "Not Started", priority: "Medium", license: "E5", powershell: "New-InsiderRiskPolicy -Name 'Departing Users'", kql: "InsiderRiskAlerts | where PolicyName == 'Departing Users'", notes: "" },
+            { id: "irm3", title: "Set up communication compliance for harassment/profanity", status: "Not Started", priority: "Low", license: "E5", powershell: "New-SupervisoryReviewPolicy -Name 'Harassment'", kql: "CommunicationComplianceAlerts | where Category == 'Harassment'", notes: "" },
+            { id: "irm4", title: "Define access thresholds and anonymized reporting", status: "Not Started", priority: "Medium", license: "E5", powershell: "Set-InsiderRiskSettings -AnonymizeUsers $true", kql: "AuditLogs | where Operation == 'UpdateInsiderRiskSettings'", notes: "" }
         ]
     },
     {
         id: "ediscovery",
         title: "eDiscovery & Lifecycle",
+        module: "Compliance",
         desc: "Respond to legal requests and manage data retention.",
         items: [
-            { id: "edis1", title: "Assign eDiscovery Manager/Administrator roles", status: "Not Started", priority: "High", notes: "" },
-            { id: "edis2", title: "Define default Retention Labels and Policies", status: "Not Started", priority: "High", notes: "" },
-            { id: "edis3", title: "Create legal hold test cases", status: "Not Started", priority: "Medium", notes: "" },
-            { id: "edis4", title: "Review retention rules for Teams recordings", status: "Not Started", priority: "Low", notes: "" }
+            { id: "edis1", title: "Assign eDiscovery Manager/Administrator roles", status: "Not Started", priority: "High", license: "E3", powershell: "Add-RoleGroupMember -Identity 'eDiscovery Manager' -Member 'user@domain.com'", kql: "AuditLogs | where Operation == 'Add-RoleGroupMember'", notes: "" },
+            { id: "edis2", title: "Define default Retention Labels and Policies", status: "Not Started", priority: "High", license: "E3", powershell: "New-RetentionCompliancePolicy -Name 'Default Retention'", kql: "AuditLogs | where Operation == 'New-RetentionCompliancePolicy'", notes: "" },
+            { id: "edis3", title: "Create legal hold test cases", status: "Not Started", priority: "Medium", license: "E3", powershell: "New-CaseHoldPolicy -Name 'Legal Hold Test'", kql: "AuditLogs | where Operation == 'New-CaseHoldPolicy'", notes: "" },
+            { id: "edis4", title: "Review retention rules for Teams recordings", status: "Not Started", priority: "Low", license: "E3", powershell: "Set-TeamsCompliancePolicy -RecordingsRetention $true", kql: "AuditLogs | where Operation contains 'TeamsCompliance'", notes: "" }
         ]
     }
 ];
@@ -64,6 +69,8 @@ const defaultData = [
 let appData = [];
 let chartPieInstance = null;
 let chartBarInstance = null;
+let currentPersona = 'Architect';
+let currentLicense = 'E5';
 
 // Initial Load
 document.addEventListener('DOMContentLoaded', () => {
@@ -124,7 +131,8 @@ function loadData() {
     if (saved) {
         try {
             const parsed = JSON.parse(saved);
-            if (parsed.length && parsed[0].items) {
+            // Check if the old data format is used (missing new toolkit fields)
+            if (parsed.length && parsed[0].items && parsed[0].items[0].powershell !== undefined) {
                 appData = parsed;
                 return;
             }
@@ -152,9 +160,12 @@ function resetData() {
 // --- UI Navigation ---
 function switchTab(tabId) {
     // Hide all sections
-    ['sec-dashboard', 'sec-checklist', 'sec-report', 'sec-builder'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-        document.getElementById(id).classList.remove('block');
+    ['sec-dashboard', 'sec-checklist', 'sec-report', 'sec-builder', 'sec-templates'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.classList.add('hidden');
+            el.classList.remove('block');
+        }
     });
 
     // Remove active state from tabs
@@ -206,8 +217,9 @@ function renderChecklist() {
                     <h3 class="text-xl font-bold flex items-center gap-3">
                         <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm font-black border border-indigo-500/20 shadow-sm">${cIndex + 1}</div>
                         ${category.title}
+                        <span class="text-[10px] bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded font-bold uppercase tracking-widest text-[color:var(--text-muted)]">${category.module}</span>
                     </h3>
-                    <p class="text-sm text-[color:var(--text-muted)] mt-2 md:pl-11">${category.desc}</p>
+                    ${currentPersona !== 'Executive' ? `<p class="text-sm text-[color:var(--text-muted)] mt-2 md:pl-11">${category.desc}</p>` : ''}
                 </div>
             </div>
             <div class="space-y-3">
@@ -215,37 +227,56 @@ function renderChecklist() {
         
         let itemsHtml = category.items.map((item, iIndex) => {
             const isDone = item.status === "Done";
+            const requiresE5 = item.license === 'E5';
+            const disabledByLicense = requiresE5 && currentLicense === 'E3';
+
             let prioColor = item.priority === 'High' ? 'text-red-500 bg-red-500/10 border-red-500/20' : 
                             (item.priority === 'Medium' ? 'text-orange-500 bg-orange-500/10 border-orange-500/20' : 
                             'text-slate-500 bg-slate-500/10 border-slate-500/20');
 
+            let licBadge = requiresE5 ? `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-purple-500/30 text-purple-600 bg-purple-500/10 flex items-center gap-1"><i class="ph-fill ph-crown"></i> E5</span>` : `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-blue-500/30 text-blue-600 bg-blue-500/10">E3/E5</span>`;
+
+            let itemClass = isDone ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50';
+            
+            if (disabledByLicense) {
+                itemClass += ' opacity-50 grayscale pointer-events-none';
+            }
+
             return `
-            <div class="checklist-item flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-xl border ${isDone ? 'border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10' : 'border-slate-200/50 dark:border-slate-700/50 bg-white/50 dark:bg-slate-800/50'} shadow-sm">
+            <div class="checklist-item flex flex-col lg:flex-row lg:items-center gap-4 p-4 rounded-xl border ${itemClass} shadow-sm transition-all">
                 <div class="flex items-start gap-4 flex-grow">
                     <input type="checkbox" class="glass-checkbox mt-1" 
                            ${isDone ? 'checked' : ''} 
+                           ${disabledByLicense ? 'disabled' : ''}
                            onchange="handleCheckbox('${category.id}', '${item.id}', this.checked)">
                     <div class="flex-grow">
-                        <div class="font-semibold text-base ${isDone ? 'line-through text-[color:var(--text-muted)] opacity-70' : 'text-slate-800 dark:text-slate-100'}">${item.title}</div>
-                        <div class="flex gap-2 mt-2">
+                        <div class="font-semibold text-base flex flex-wrap items-center gap-2 ${isDone ? 'line-through text-[color:var(--text-muted)] opacity-70' : 'text-slate-800 dark:text-slate-100'}">
+                            ${item.title}
+                            ${disabledByLicense ? '<span class="text-[10px] text-red-500 font-bold bg-red-500/10 px-2 py-0.5 rounded uppercase tracking-wider border border-red-500/20">Requires E5</span>' : ''}
+                        </div>
+                        <div class="flex gap-2 mt-2 items-center flex-wrap">
                             <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border ${prioColor}">
                                 ${item.priority}
                             </span>
+                            ${currentPersona === 'Architect' ? licBadge : ''}
+                            ${(currentPersona === 'Architect' || currentPersona === 'Operator') && !disabledByLicense && (item.powershell || item.kql) ? `<button onclick="showSnippets('${btoa(item.powershell || '')}', '${btoa(item.kql || '')}')" class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded border border-indigo-500/30 text-indigo-600 bg-indigo-500/10 hover:bg-indigo-500 hover:text-white transition-colors cursor-pointer flex items-center gap-1"><i class="ph-bold ph-terminal-window"></i> Quick Action</button>` : ''}
                         </div>
                     </div>
                 </div>
+                ${currentPersona !== 'Executive' ? `
                 <div class="flex flex-col sm:flex-row gap-3 lg:w-auto w-full">
                     <select class="glass-input px-3 py-2 text-sm lg:w-40 font-medium cursor-pointer" 
                             onchange="updateItem('${category.id}', '${item.id}', 'status', this.value)"
-                            ${isDone ? 'disabled' : ''}>
+                            ${isDone || disabledByLicense ? 'disabled' : ''}>
                         <option value="Not Started" ${item.status === 'Not Started' ? 'selected' : ''}>Not Started</option>
                         <option value="In Progress" ${item.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
                         <option value="Done" ${item.status === 'Done' ? 'selected' : ''}>Done</option>
                     </select>
                     <input type="text" placeholder="Add notes/owners..." class="glass-input px-3 py-2 text-sm flex-grow lg:w-56 placeholder:text-[color:var(--text-muted)]"
                            value="${item.notes}"
+                           ${disabledByLicense ? 'disabled' : ''}
                            onchange="updateItem('${category.id}', '${item.id}', 'notes', this.value)">
-                </div>
+                </div>` : ''}
             </div>
             `;
         }).join('');
@@ -329,6 +360,26 @@ function updateDashboard() {
             </div>
         `;
     });
+
+    // Update Heatmap
+    const heatmapContainer = document.getElementById('heatmap-container');
+    if (heatmapContainer) {
+        heatmapContainer.innerHTML = '';
+        categoryStats.forEach(stat => {
+            let intensityClass = 'bg-slate-200 dark:bg-slate-700'; // 0%
+            if (stat.percent > 0) intensityClass = 'bg-indigo-200 dark:bg-indigo-900/50';
+            if (stat.percent >= 40) intensityClass = 'bg-indigo-400 dark:bg-indigo-600';
+            if (stat.percent >= 70) intensityClass = 'bg-indigo-600 dark:bg-indigo-500';
+            if (stat.percent === 100) intensityClass = 'bg-emerald-500 dark:bg-emerald-500';
+
+            heatmapContainer.innerHTML += `
+                <div class="flex flex-col gap-1 items-center" title="${stat.title}: ${stat.percent}%">
+                    <div class="w-full h-12 rounded-lg ${intensityClass} transition-colors border border-black/5 dark:border-white/5 shadow-sm"></div>
+                    <span class="text-[10px] font-bold text-center text-[color:var(--text-muted)] uppercase tracking-wider truncate w-full">${stat.shortTitle}</span>
+                </div>
+            `;
+        });
+    }
 
     drawCharts(statusCounts, categoryStats);
 }
@@ -568,6 +619,16 @@ function performExport(wasDark) {
 // --- Builder Wizard Logic ---
 const builderQuestions = [
     {
+        id: "industry",
+        text: "What is your primary industry?",
+        options: [
+            { id: "financial", label: "Financial Services (Banking, SEC, PCI-DSS)" },
+            { id: "healthcare", label: "Healthcare (Hospital, HIPAA, HITECH)" },
+            { id: "government", label: "Government / Public Sector" },
+            { id: "other", label: "Other" }
+        ]
+    },
+    {
         id: "discovery",
         text: "Which data sources will you connect to Microsoft Purview?",
         options: [
@@ -741,10 +802,22 @@ function generateImplementationPlan() {
         if(ans.includes('yes_comm')) { addGTask('insider_risk', { id: "b_ir2", title: "Configure Communication Compliance", status: "Done", priority: "Medium", notes: "Phase 2 (Requires E5)" }); needsE5=true; e5Reasons.push("Communication Compliance"); }
     }
     
+    // Industry rules
+    if(builderAnswers['industry']) {
+        let ans = builderAnswers['industry'];
+        if(ans.includes('financial')) {
+            addGTask('dlp', { id: "b_ind1", title: "Configure SEC & PCI-DSS DLP Policies", status: "Not Started", priority: "High", license: "E3", powershell: "New-DlpCompliancePolicy -Name 'Financial Regulatory' -Regulatory PCI,SEC", kql: "AuditLogs | where Operation == 'New-DlpCompliancePolicy'", notes: "Financial Industry Mandate" });
+            addGTask('classification', { id: "b_ind2", title: "Enable Financial Sensitive Info Types (SIT)", status: "Not Started", priority: "High", license: "E3", powershell: "Get-DlpSensitiveInformationType | Where Name -match 'Credit Card|ABA'", kql: "", notes: "Financial Industry Mandate" });
+        }
+        if(ans.includes('healthcare')) {
+            addGTask('dlp', { id: "b_ind3", title: "Configure HIPAA/HITECH DLP Policies", status: "Not Started", priority: "High", license: "E3", powershell: "New-DlpCompliancePolicy -Name 'Healthcare Regulatory' -Regulatory HIPAA", kql: "", notes: "Healthcare Mandate" });
+        }
+    }
+
     // eDiscovery
     if(builderAnswers['ediscovery']) {
         let ans = builderAnswers['ediscovery'];
-        if(ans.includes('premium')) { addGTask('ediscovery', { id: "b_ed1", title: "Enable Premium eDiscovery capabilities", status: "Done", priority: "Medium", notes: "Phase 3 (Requires E5)" }); needsE5=true; e5Reasons.push("Premium eDiscovery"); }
+        if(ans.includes('premium')) { addGTask('ediscovery', { id: "b_ed1", title: "Enable Premium eDiscovery capabilities", status: "Done", priority: "Medium", license: "E5", notes: "Phase 3 (Requires E5)" }); needsE5=true; e5Reasons.push("Premium eDiscovery"); }
     }
 
     saveData();
@@ -834,4 +907,104 @@ function exportTasksToCSV() {
     link.click();
     document.body.removeChild(link);
     setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+// --- Persona & License ---
+function updatePersona() {
+    currentPersona = document.getElementById('persona-selector').value;
+    
+    // Adjust dashboard layout based on persona
+    const chartsRow = document.getElementById('dashboard-charts-row');
+    
+    if (currentPersona === 'Executive') {
+        if(chartsRow) chartsRow.classList.remove('hidden');
+    } else if (currentPersona === 'Operator') {
+        if(chartsRow) chartsRow.classList.add('hidden');
+    } else {
+        if(chartsRow) chartsRow.classList.remove('hidden');
+    }
+
+    renderChecklist();
+}
+
+function setLicense(lic) {
+    currentLicense = lic;
+    document.getElementById('btn-lic-e3').classList.toggle('bg-white', lic === 'E3');
+    document.getElementById('btn-lic-e3').classList.toggle('shadow-sm', lic === 'E3');
+    document.getElementById('btn-lic-e3').classList.toggle('dark:bg-slate-600', lic === 'E3');
+    
+    document.getElementById('btn-lic-e5').classList.toggle('bg-white', lic === 'E5');
+    document.getElementById('btn-lic-e5').classList.toggle('shadow-sm', lic === 'E5');
+    document.getElementById('btn-lic-e5').classList.toggle('dark:bg-slate-600', lic === 'E5');
+    
+    renderChecklist();
+}
+
+// --- Quick Actions ---
+function showSnippets(psB64, kqlB64) {
+    const ps = atob(psB64) || "# No PowerShell snippet available";
+    const kql = atob(kqlB64) || "// No KQL query available";
+    
+    document.getElementById('ps-snippet').textContent = ps;
+    document.getElementById('kql-snippet').textContent = kql;
+    
+    const modal = document.getElementById('quick-action-modal');
+    const content = document.getElementById('quick-action-content');
+    
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        modal.classList.remove('opacity-0');
+        content.classList.remove('scale-95');
+    }, 10);
+}
+
+function closeQuickAction() {
+    const modal = document.getElementById('quick-action-modal');
+    const content = document.getElementById('quick-action-content');
+    
+    modal.classList.add('opacity-0');
+    content.classList.add('scale-95');
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+function copyToClipboard(elementId) {
+    const text = document.getElementById(elementId).textContent;
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Copied to clipboard!");
+    });
+}
+
+// --- Export to PM ---
+function exportToProjectManagement() {
+    // Generates a Jira / Planner compatible CSV of the entire checklist
+    let csvContent = "\uFEFFSummary,Description,Status,Priority,Labels\n";
+    
+    appData.forEach(cat => {
+        cat.items.forEach(item => {
+            let title = `"[${cat.title}] ${item.title.replace(/"/g, '""')}"`;
+            let desc = `"${item.notes.replace(/"/g, '""')}\nRequires: ${item.license}"`;
+            let status = item.status === 'Done' ? 'Done' : (item.status === 'In Progress' ? 'In Progress' : 'To Do');
+            let priority = item.priority === 'High' ? 'Highest' : (item.priority === 'Medium' ? 'Medium' : 'Low');
+            let labels = `"${cat.module},Purview"`;
+            
+            csvContent += `${title},${desc},${status},${priority},${labels}\n`;
+        });
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Purview_Jira_Import.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+function downloadTemplate(filename) {
+    alert("In a real scenario, this would download " + filename);
 }
