@@ -526,7 +526,7 @@ function renderReport() {
         
         breakdownHtml += `
             <div class="px-5 py-4 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/50 flex flex-col justify-center">
-                <div class="flex justify-between items-center mb-2 text-sm font-bold">
+                <div class="justify-between items-center mb-2 text-sm font-bold flex">
                     <span>${cat.title}</span>
                     <span class="${pcent===100 ? 'text-emerald-500' : 'text-indigo-500'}">${pcent}%</span>
                 </div>
@@ -536,6 +536,14 @@ function renderReport() {
             </div>
         `;
     });
+
+    // Update Org Name in Report Header
+    const orgEl = document.getElementById('report-org-name');
+    if (enrollmentInfo.orgName) {
+        orgEl.textContent = enrollmentInfo.orgName + " Readiness";
+    } else {
+        orgEl.textContent = "Deployment Readiness Report";
+    }
 
     let overallPcent = Math.round((done / total) * 100);
     
@@ -587,6 +595,50 @@ function renderReport() {
     }
 
     document.getElementById('report-category-breakdown').innerHTML = breakdownHtml;
+
+    // --- Generate Project Roadmap (Timeline) ---
+    const roadmapContainer = document.getElementById('report-project-plan');
+    const roadmap = [
+        { phase: "Phase 1", title: "Foundation", weeks: "Weeks 1-4", color: "blue", icon: "ph-star", items: ["Licensing Setup", "SIT Definition", "Sensitivity Labels"] },
+        { phase: "Phase 2", title: "Protection", weeks: "Weeks 5-12", color: "indigo", icon: "ph-shield-check", items: ["DLP Policies", "Endpoint DLP", "Teams Security"] },
+        { phase: "Phase 3", title: "Optimization", weeks: "Weeks 13-24", color: "purple", icon: "ph-chart-line-up", items: ["Insider Risk", "Lifecycle Mgmt", "Data Map"] }
+    ];
+
+    roadmapContainer.innerHTML = roadmap.map(step => `
+        <div class="flex-1 glass-card p-5 border-t-4 border-t-${step.color}-500 relative bg-white/40 dark:bg-slate-800/40">
+            <div class="absolute -top-3 right-4 bg-${step.color}-500 text-white p-1.5 rounded-lg shadow-lg">
+                <i class="${step.icon} text-lg"></i>
+            </div>
+            <div class="text-xs font-black uppercase tracking-widest text-${step.color}-600 dark:text-${step.color}-400 mb-1">${step.phase}</div>
+            <h4 class="font-bold text-slate-800 dark:text-white mb-1">${step.title}</h4>
+            <div class="text-[10px] font-bold text-[color:var(--text-muted)] mb-3">${step.weeks}</div>
+            <ul class="space-y-1.5">
+                ${step.items.map(i => `<li class="text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-1.5"><div class="w-1 h-1 rounded-full bg-${step.color}-400"></div> ${i}</li>`).join('')}
+            </ul>
+        </div>
+    `).join('');
+
+    // --- Generate Detailed Action Plan (Technical Table) ---
+    const actionPlanContainer = document.getElementById('report-action-plan');
+    let actionItems = [
+        { phase: "Setup", task: "Validate Purview Licensing & Roles", tool: "M365 Admin Center" },
+        { phase: "Phase 1", task: "Configure Global Sensitivity Labels", tool: "Information Protection" }
+    ];
+
+    // Add dynamic items based on builder answers
+    if (builderAnswers['discovery']?.includes('azure')) actionItems.push({ phase: "Phase 1", task: "Register Azure Assets in Data Map", tool: "Purview Data Map" });
+    if (builderAnswers['classification']?.includes('auto')) actionItems.push({ phase: "Phase 2", task: "Deploy Auto-labeling Policies", tool: "Information Protection" });
+    if (builderAnswers['dlp']?.includes('endpoint')) actionItems.push({ phase: "Phase 2", task: "Onboard Windows 10/11 to Purview", tool: "Endpoint DLP" });
+    if (builderAnswers['insider_risk']?.includes('yes_irm')) actionItems.push({ phase: "Phase 3", task: "Define Risk Thresholds & Policies", tool: "Insider Risk Mgmt" });
+    if (builderAnswers['industry']?.includes('financial')) actionItems.push({ phase: "Phase 1", task: "Apply PCI-DSS & SEC Rule Templates", tool: "DLP / Compliance" });
+
+    actionPlanContainer.innerHTML = actionItems.map(item => `
+        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
+            <td class="px-4 py-3 font-bold text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-wider">${item.phase}</td>
+            <td class="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium">${item.task}</td>
+            <td class="px-4 py-3"><span class="px-2 py-1 bg-slate-100 dark:bg-slate-700 rounded text-[10px] font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-600">${item.tool}</span></td>
+        </tr>
+    `).join('');
 }
 
 // --- Export to PDF ---
@@ -685,12 +737,68 @@ const builderQuestions = [
     }
 ];
 
-let builderStep = 0;
+let builderStep = -1; // -1 is the initial Enrollment Form
 let builderAnswers = {};
+let enrollmentInfo = {
+    orgName: "",
+    industry: "other",
+    license: "E5",
+    readiness: "yellow"
+};
 let currentSelections = [];
 
 function initBuilder() {
     const container = document.getElementById('builder-content');
+    
+    // Step -1: Enrollment Initial Form
+    if (builderStep === -1) {
+        document.getElementById('builder-progress').style.width = '5%';
+        let html = `
+            <div class="mb-6">
+                <span class="text-xs font-extrabold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-2 py-1 rounded">Phase 0: Enrollment Context</span>
+                <h3 class="text-2xl font-bold mt-4 mb-2 text-slate-800 dark:text-white">Organization Context</h3>
+                <p class="text-[color:var(--text-muted)] text-sm">Please provide the baseline context for this Purview implementation.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Organization Name</label>
+                    <input type="text" id="enroll-org" class="glass-input w-full px-4 py-3" placeholder="e.g. Contoso Corp" value="${enrollmentInfo.orgName}">
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Primary Industry</label>
+                    <select id="enroll-industry" class="glass-input w-full px-4 py-3 cursor-pointer">
+                        <option value="financial" ${enrollmentInfo.industry === 'financial' ? 'selected' : ''}>Financial Services</option>
+                        <option value="healthcare" ${enrollmentInfo.industry === 'healthcare' ? 'selected' : ''}>Healthcare</option>
+                        <option value="government" ${enrollmentInfo.industry === 'government' ? 'selected' : ''}>Government</option>
+                        <option value="other" ${enrollmentInfo.industry === 'other' ? 'selected' : ''}>Other / Commercial</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Target License Plan</label>
+                    <select id="enroll-license" class="glass-input w-full px-4 py-3 cursor-pointer">
+                        <option value="E3" ${enrollmentInfo.license === 'E3' ? 'selected' : ''}>Microsoft 365 E3</option>
+                        <option value="E5" ${enrollmentInfo.license === 'E5' ? 'selected' : ''}>Microsoft 365 E5 / Compliance</option>
+                    </select>
+                </div>
+                <div class="space-y-2">
+                    <label class="text-sm font-bold text-slate-700 dark:text-slate-300">Initial Readiness Assessment</label>
+                    <select id="enroll-readiness" class="glass-input w-full px-4 py-3 cursor-pointer">
+                        <option value="green" ${enrollmentInfo.readiness === 'green' ? 'selected' : ''}>High (Strong Governance)</option>
+                        <option value="yellow" ${enrollmentInfo.readiness === 'yellow' ? 'selected' : ''}>Medium (Standard IT)</option>
+                        <option value="red" ${enrollmentInfo.readiness === 'red' ? 'selected' : ''}>Low (Starting from scratch)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-10 flex justify-end pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                <button class="saas-btn px-8 py-3 text-sm font-bold bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg" onclick="saveEnrollment()">Start Implementation Wizard <i class="ph-bold ph-caret-right inline-block ml-1"></i></button>
+            </div>
+        `;
+        container.innerHTML = html;
+        return;
+    }
+
     if (builderStep < builderQuestions.length) {
         let q = builderQuestions[builderStep];
         let prog = ((builderStep) / (builderQuestions.length + 1)) * 100;
@@ -753,8 +861,25 @@ function finishBuilderStep(skip = false) {
     initBuilder();
 }
 
-function resetBuilder() {
+function saveEnrollment() {
+    enrollmentInfo.orgName = document.getElementById('enroll-org').value;
+    enrollmentInfo.industry = document.getElementById('enroll-industry').value;
+    enrollmentInfo.license = document.getElementById('enroll-license').value;
+    enrollmentInfo.readiness = document.getElementById('enroll-readiness').value;
+    
+    // Automatically set the global license toggle if user picked E3
+    if (enrollmentInfo.license === 'E3') setLicense('E3');
+    else setLicense('E5');
+
+    // Also auto-select the industry answer for the first question if it exists
+    builderAnswers['industry'] = [enrollmentInfo.industry];
+    
     builderStep = 0;
+    initBuilder();
+}
+
+function resetBuilder() {
+    builderStep = -1;
     builderAnswers = {};
     currentSelections = [];
     initBuilder();
@@ -893,6 +1018,49 @@ function generateImplementationPlan() {
             </div>
         </div>
     `;
+}
+
+function exportProjectPlanCSV() {
+    // Collect Roadmap items
+    const roadmap = [
+        { phase: "Phase 1", title: "Foundation", weeks: "Weeks 1-4", items: "Licensing Setup, SIT Definition, Sensitivity Labels" },
+        { phase: "Phase 2", title: "Protection", weeks: "Weeks 5-12", items: "DLP Policies, Endpoint DLP, Teams Security" },
+        { phase: "Phase 3", title: "Optimization", weeks: "Weeks 13-24", items: "Insider Risk, Lifecycle Mgmt, Data Map" }
+    ];
+
+    // Collect Action Plan items (similar logic to renderReport)
+    let actionItems = [
+        { phase: "Setup", task: "Validate Purview Licensing & Roles", tool: "M365 Admin Center" },
+        { phase: "Phase 1", task: "Configure Global Sensitivity Labels", tool: "Information Protection" }
+    ];
+    if (builderAnswers['discovery']?.includes('azure')) actionItems.push({ phase: "Phase 1", task: "Register Azure Assets in Data Map", tool: "Purview Data Map" });
+    if (builderAnswers['classification']?.includes('auto')) actionItems.push({ phase: "Phase 2", task: "Deploy Auto-labeling Policies", tool: "Information Protection" });
+    if (builderAnswers['dlp']?.includes('endpoint')) actionItems.push({ phase: "Phase 2", task: "Onboard Windows 10/11 to Purview", tool: "Endpoint DLP" });
+    if (builderAnswers['insider_risk']?.includes('yes_irm')) actionItems.push({ phase: "Phase 3", task: "Define Risk Thresholds & Policies", tool: "Insider Risk Mgmt" });
+    if (builderAnswers['industry']?.includes('financial')) actionItems.push({ phase: "Phase 1", task: "Apply PCI-DSS & SEC Rule Templates", tool: "DLP / Compliance" });
+
+    let csvContent = "\uFEFFType,Phase,Title/Task,Weeks/Tool,Items\n";
+    
+    // Add Roadmap
+    roadmap.forEach(r => {
+        csvContent += `Roadmap,${r.phase},"${r.title}",${r.weeks},"${r.items}"\n`;
+    });
+    
+    // Add Action Plan
+    actionItems.forEach(a => {
+        csvContent += `Action Item,${a.phase},"${a.task}",${a.tool},-\n`;
+    });
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    const orgName = enrollmentInfo.orgName ? enrollmentInfo.orgName.replace(/\s+/g, '_') : 'Purview';
+    link.setAttribute("download", `${orgName}_Project_Plan.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
 }
 
 function exportTasksToCSV() {

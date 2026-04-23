@@ -502,9 +502,14 @@
                         <p class="text-[color:var(--text-muted)] mt-2">Executive summary generated entirely from local
                             inputs.</p>
                     </div>
-                    <button onclick="exportPDF()" class="saas-btn px-6 py-3 font-bold flex items-center gap-2 text-sm">
-                        <i class="ph-bold ph-download-simple text-lg"></i> Export PDF Report
-                    </button>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="exportProjectPlanCSV()" class="secondary-btn px-6 py-3 font-bold flex items-center gap-2 text-sm border border-indigo-500/30 text-indigo-600 dark:text-indigo-400">
+                            <i class="ph-bold ph-microsoft-excel-logo text-lg"></i> Export Project Plan
+                        </button>
+                        <button onclick="exportPDF()" class="saas-btn px-6 py-3 font-bold flex items-center gap-2 text-sm">
+                            <i class="ph-bold ph-download-simple text-lg"></i> Export PDF Report
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Print Area -->
@@ -514,12 +519,12 @@
                     <div
                         class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-indigo-500/10 pb-6">
                         <div>
-                            <div class="flex items-center gap-3 mb-3">
+                            <div class="flex items-center gap-3 mb-1">
                                 <i class="ph-fill ph-microsoft-logo text-3xl text-indigo-600"></i>
                                 <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Microsoft Purview</h1>
                             </div>
-                            <h2 class="text-xl md:text-2xl text-[color:var(--text-muted)] font-medium">Deployment
-                                Assessment</h2>
+                            <h2 class="text-xl md:text-2xl text-slate-800 dark:text-white font-bold" id="report-org-name">Deployment Readiness</h2>
+                            <h3 class="text-sm md:text-base text-[color:var(--text-muted)] font-medium">Official Assessment Report</h3>
                             <div
                                 class="flex items-center gap-2 mt-4 text-sm text-[color:var(--text-muted)] font-semibold">
                                 <i class="ph ph-calendar-blank"></i> <span id="report-date"></span>
@@ -552,6 +557,37 @@
                             id="report-summary-text">
                             Loading summary...
                         </p>
+                    </section>
+
+                    <!-- Project Plan / Timeline -->
+                    <section class="space-y-6">
+                        <h3 class="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-white">
+                            <i class="ph-fill ph-calendar-check text-indigo-500"></i> Project Roadmap (Timeline)
+                        </h3>
+                        <div id="report-project-plan" class="flex flex-col md:flex-row gap-4 items-stretch">
+                            <!-- JS populated Timeline steps -->
+                        </div>
+                    </section>
+
+                    <!-- Action Plan (Technical) -->
+                    <section>
+                        <h3 class="text-xl font-bold mb-6 flex items-center gap-2 text-slate-800 dark:text-white">
+                            <i class="ph-fill ph-list-checks text-blue-500"></i> Detailed Action Plan
+                        </h3>
+                        <div class="overflow-hidden border border-slate-200 dark:border-slate-700 rounded-2xl">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300">
+                                    <tr>
+                                        <th class="px-4 py-3 font-bold border-b border-slate-200 dark:border-slate-700">Phase</th>
+                                        <th class="px-4 py-3 font-bold border-b border-slate-200 dark:border-slate-700">Action Item</th>
+                                        <th class="px-4 py-3 font-bold border-b border-slate-200 dark:border-slate-700">Tool/Platform</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="report-action-plan" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                                    <!-- JS populated -->
+                                </tbody>
+                            </table>
+                        </div>
                     </section>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
